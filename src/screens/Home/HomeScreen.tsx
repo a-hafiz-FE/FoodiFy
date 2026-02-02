@@ -3,7 +3,8 @@ import { View, Text, ScrollView } from 'react-native';
 import { styles } from './styles';
 
 import HomeTopBar from './HomeComponents/HomeTopBar';
-import CarouselCard from './HomeComponents/CarouselCard';
+import CarouselCard from '../../Components/CarouselCard';
+import RecipeCard from '../../Components/RecipeCard';
 
 const HomeScreen = () => {
   return (
@@ -39,15 +40,23 @@ const HomeScreen = () => {
           <View
             style={{
               backgroundColor: '#f6fbf4',
-              height: 661,
               borderRadius: 10,
               marginHorizontal: 10,
               marginBottom: 40,
+              paddingHorizontal: 20,
             }}
           >
-            <Text style={{ fontSize: 32, marginVertical: 10, marginLeft: 10 }}>
+            <Text
+              style={{
+                fontSize: 32,
+                marginVertical: 10,
+              }}
+            >
               The Latest Recipes
             </Text>
+            <RecipeCard></RecipeCard>
+            <RecipeCard></RecipeCard>
+            <RecipeCard></RecipeCard>
           </View>
         </View>
       </ScrollView>

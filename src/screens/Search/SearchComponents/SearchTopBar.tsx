@@ -1,19 +1,30 @@
 import React from 'react';
-import { View, Pressable, Image, TextInput } from 'react-native';
+import { TextInput, View, Pressable } from 'react-native';
+import { styles } from '../../Home/styles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { styles } from '../styles';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 
-const HomeTopBar = () => {
+const SearchTopBar = () => {
   const navigation = useNavigation();
-
   return (
-    <View style={styles.TopBar}>
-      <Image
-        source={require('../../../../assets/Logo.png')}
-        style={styles.TopBarImage}
-      />
-      <View style={styles.SearchBar}>
+    <View
+      style={{
+        backgroundColor: '#4058A0',
+        height: 119,
+        borderBottomStartRadius: 12,
+        borderBottomEndRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <View
+        style={{
+          width: 320,
+          flexDirection: 'row',
+          bottom: 17,
+          position: 'absolute',
+        }}
+      >
         <Ionicons
           name="search-outline"
           size={24}
@@ -45,4 +56,4 @@ const HomeTopBar = () => {
   );
 };
 
-export default HomeTopBar;
+export default SearchTopBar;

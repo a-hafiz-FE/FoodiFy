@@ -45,28 +45,47 @@ const AnimatedTabrBar = ({ state, navigation }: any) => {
       />
       {state.routes.map((route: any, index: number) => {
         const isFocused = state.index === index;
-        const icon =
-          route.name === 'Home'
-            ? isFocused
-              ? 'home'
-              : 'home-outline'
-            : route.name === 'Search'
-            ? isFocused
-              ? 'search'
-              : 'search-outline'
-            : route.name === 'Add New'
-            ? isFocused
-              ? 'add-circle'
-              : 'add-circle-outline'
-            : route.name === 'Save'
-            ? isFocused
-              ? 'bookmark'
-              : 'bookmark-outline'
-            : route.name === 'Profile'
-            ? isFocused
-              ? 'person'
-              : 'person-outline'
-            : 'ellipse-outline';
+        // const icon =
+        //   route.name === 'Home'
+        //     ? isFocused
+        //       ? 'home'
+        //       : 'home-outline'
+        //     : route.name === 'Search'
+        //     ? isFocused
+        //       ? 'search'
+        //       : 'search-outline'
+        //     : route.name === 'Add New'
+        //     ? isFocused
+        //       ? 'add-circle'
+        //       : 'add-circle-outline'
+        //     : route.name === 'Save'
+        //     ? isFocused
+        //       ? 'bookmark'
+        //       : 'bookmark-outline'
+        //     : route.name === 'Profile'
+        //     ? isFocused
+        //       ? 'person'
+        //       : 'person-outline'
+        //     : 'ellipse-outline';
+
+        // is this the right way ?
+        const icons: any = {
+          Home: ['home', 'home-outline'],
+          Search: ['search', 'search-outline'],
+          'Add New': ['add-circle', 'add-circle-outline'],
+          Save: ['bookmark', 'bookmark-outline'],
+          Profile: ['person', 'person-outline'],
+        };
+
+        const getIconName = (routeName: any, isFocused: boolean) => {
+          const pair = icons[routeName] ?? [
+            'ellipse-outline',
+            'ellipse-outline',
+          ];
+          return isFocused ? pair[0] : pair[1];
+        };
+
+        const icon = getIconName(route.name, isFocused);
 
         const scale = useRef(new Animated.Value(isFocused ? 1.1 : 1)).current;
         const lift = useRef(new Animated.Value(isFocused ? -6 : 0)).current;
