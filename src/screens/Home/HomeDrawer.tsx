@@ -12,7 +12,7 @@ const HomeDrawer = () => {
         headerShown: false,
         drawerPosition: 'right',
         drawerType: 'front',
-        swipeEnabled: true,
+        swipeEnabled: false,
         drawerStyle: { width: 340 },
       }}
       drawerContent={props => <FilterDrawer {...props} />}

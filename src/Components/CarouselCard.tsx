@@ -1,17 +1,26 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Image } from 'react-native';
 
-const CarouselCard = () => {
+type props = { title: string; rating: number; image: string };
+const CarouselCard = ({ title, rating, image }: props) => {
   return (
     <View
       style={{
         height: 199,
         width: 156,
-        backgroundColor: '#a8a8a8',
         borderRadius: 8,
         marginHorizontal: 8,
       }}
     >
+      <Image
+        source={{ uri: image }}
+        style={{
+          width: '100%',
+          height: '100%',
+          position: 'absolute',
+          borderRadius: 8,
+        }}
+      />
       <View
         style={{
           position: 'absolute',
@@ -26,7 +35,7 @@ const CarouselCard = () => {
         }}
       >
         <Text style={{ color: '#fff' }}>Star</Text>
-        <Text style={{ color: '#fff' }}>4.5</Text>
+        <Text style={{ color: '#fff' }}>{rating}</Text>
       </View>
 
       <Text
@@ -41,10 +50,7 @@ const CarouselCard = () => {
           padding: 8,
         }}
       >
-        Lorem ipsum dolor sit amet consectetur, adipisicing elit. Dolores
-        provident molestias voluptatum tempore cupiditate id ullam sed, nam est
-        modi dolorum excepturi totam impedit consequuntur. Nam est perferendis
-        nemo non!
+        {title}
       </Text>
     </View>
   );

@@ -2,10 +2,19 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import type { DrawerContentComponentProps } from '@react-navigation/drawer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Slider from '@react-native-community/slider';
+import CookTime from './CookTime';
+import DificultyFilter from './DificultyFilter';
+import DishTypeFilter from './DishTypeFilter';
+import DietaryTargetFilter from './DietaryTargetFilter';
+import { ScrollView } from 'react-native-gesture-handler';
+import { DrawerActions } from '@react-navigation/native';
 
 const FilterDrawer = (props: DrawerContentComponentProps) => {
   const { navigation } = props;
+  const [clearSignal, setClearSignal] = React.useState(0);
+
+  const clearFilters = () => setClearSignal(n => n + 1);
+
   return (
     <View
       style={{
@@ -16,86 +25,63 @@ const FilterDrawer = (props: DrawerContentComponentProps) => {
         borderTopStartRadius: 12,
         paddingTop: 60,
         paddingHorizontal: 13,
+        paddingVertical: 50,
       }}
     >
-      <View
-        style={{
-          backgroundColor: '#DEE21B',
-          borderRadius: 10,
-          height: 40,
-          justifyContent: 'flex-start',
-          alignItems: 'center',
-          flexDirection: 'row',
-          gap: 7,
-          paddingLeft: 5,
-        }}
-      >
-        <Ionicons name="filter" size={32} color={'#000'} />
-        <Text style={{ fontSize: 20 }}>Filters</Text>
-      </View>
-
-      <View
-        style={{
-          height: 111,
-          backgroundColor: '#4058A0',
-          marginTop: 20,
-          borderRadius: 8,
-        }}
-      ></View>
-
-      <View
-        style={{
-          height: 111,
-          backgroundColor: '#4058A0',
-          marginTop: 8,
-          borderRadius: 8,
-        }}
-      ></View>
-
-      <View
-        style={{
-          height: 148,
-          backgroundColor: '#4058A0',
-          marginTop: 8,
-          borderRadius: 8,
-        }}
-      ></View>
-
-      <View
-        style={{
-          height: 148,
-          backgroundColor: '#4058A0',
-          marginTop: 8,
-          borderRadius: 8,
-        }}
-      ></View>
-
-      <View style={{ marginTop: 33, flexDirection: 'row', gap: 10 }}>
-        <Pressable
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View
           style={{
-            borderWidth: 1,
-            borderRadius: 20,
+            backgroundColor: '#DEE21B',
+            borderRadius: 10,
             height: 40,
-            width: '48%',
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             alignItems: 'center',
+            flexDirection: 'row',
+            gap: 7,
+            paddingLeft: 5,
           }}
         >
-          <Text>Clear All</Text>
-        </Pressable>
-        <Pressable
-          style={{
-            backgroundColor: '#000',
-            borderRadius: 20,
-            height: 40,
-            width: '48%',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Text style={{ color: '#fff' }}>Confirm</Text>
-        </Pressable>
-      </View>
+          <Ionicons name="filter" size={32} color={'#000'} />
+          <Text style={{ fontSize: 20 }}>Filters</Text>
+        </View>
+
+        <CookTime clearSignal={clearSignal} />
+
+        <DificultyFilter clearSignal={clearSignal} />
+
+        <DishTypeFilter clearSignal={clearSignal} />
+
+        <DietaryTargetFilter clearSignal={clearSignal} />
+
+        <View style={{ marginTop: 33, flexDirection: 'row', gap: 10 }}>
+          <Pressable
+            style={{
+              borderWidth: 1,
+              borderRadius: 20,
+              height: 40,
+              width: '48%',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={() => clearFilters()}
+          >
+            <Text>Clear All</Text>
+          </Pressable>
+          <Pressable
+            style={{
+              backgroundColor: '#000',
+              borderRadius: 20,
+              height: 40,
+              width: '48%',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={() => navigation.dispatch(DrawerActions.closeDrawer())}
+          >
+            <Text style={{ color: '#fff' }}>Confirm</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </View>
   );
 };

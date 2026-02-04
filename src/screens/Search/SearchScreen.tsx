@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Dimensions } from 'react-native';
+import { View, Dimensions } from 'react-native';
 import { styles } from './styles';
 import SearchTopBar from './SearchComponents/SearchTopBar';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
