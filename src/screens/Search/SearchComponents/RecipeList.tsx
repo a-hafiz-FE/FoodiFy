@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, FlatList } from 'react-native';
 import { styles } from '../styles';
 import CarouselCard from '../../../Components/CarouselCard';
 import { useMealStore } from '../../../app/mealStore';
 
 const RecipeList = () => {
-  const { meals } = useMealStore();
+  const mealsArray = useMealStore(s => s.mealsArray);
+  const meals = useMemo(() => mealsArray(), [mealsArray]);
   return (
     <View style={styles.RecipeListStyle}>
       <FlatList

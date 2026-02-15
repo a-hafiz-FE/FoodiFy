@@ -1,11 +1,14 @@
 import { useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 import {
-  launchImageLibrary,
   type ImageLibraryOptions,
   type PhotoQuality,
 } from 'react-native-image-picker';
+import AddNewPage1 from './Components/AddNewPage1';
+import ImagePicker from 'react-native-image-crop-picker';
+import AddNewPage2 from './Components/AddNewPage2';
+import AddNewTopBar from './Components/AddNewTopBar';
 
 const AddNewScreen = () => {
   const [step, setStep] = useState(1);
@@ -18,6 +21,10 @@ const AddNewScreen = () => {
 
   const handelPrev = () => {
     setStep(p => Math.max(p - 1, 1));
+  };
+
+  const handleSave = () => {
+    setStep(p => Math.min(p + 1, totalSteps));
   };
 
   const options: ImageLibraryOptions = {
@@ -42,33 +49,47 @@ const AddNewScreen = () => {
         openedOnce.current = true;
 
         const t = setTimeout(async () => {
-          const res = await launchImageLibrary(options);
-
-          if (res.didCancel) {
-            console.log('User cancelled image picker');
-            return;
+          try {
+            const res = await ImagePicker.openPicker({
+              mediaType: 'photo',
+            });
+            setSelectedImage(res.path);
+          } catch (e) {
+            console.log(e);
           }
+        }, 100);
 
-          if (res.errorCode) {
-            console.log('Image picker error', res.errorMessage);
-            return;
-          }
-
-          const uri = res.assets?.[0]?.uri;
-          if (!uri) {
-            console.log('No image uri returned');
-            return;
-          }
-          setSelectedImage(uri);
-        }, 200);
-
-        return () => clearTimeout(t);
+        return () => {
+          clearTimeout(t);
+        };
       }
       return () => {
         openedOnce.current = false;
+        setStep(1);
+        setSelectedImage('');
       };
     }, []),
   );
+
+  const handleCrop = async () => {
+    if (!selectedImage) return;
+
+    try {
+      const cropped = await ImagePicker.openCropper({
+        path: selectedImage,
+        mediaType: 'photo',
+        width: 800,
+        height: 800,
+        cropping: true,
+        cropperCircleOverlay: false,
+        compressImageQuality: 0.8,
+      });
+
+      setSelectedImage(cropped.path);
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   const renderStepsIndecator = () => {
     const indecator = [];
@@ -84,16 +105,18 @@ const AddNewScreen = () => {
           <View
             style={{
               backgroundColor: '#353535',
-              height: 32,
-              width: i === step ? 'auto' : 32,
-              paddingHorizontal: 12,
+              height: 36,
+              width: i === step ? 'auto' : 36,
+              paddingHorizontal: 10,
               borderRadius: 99,
               justifyContent: 'center',
               alignItems: 'center',
               borderCurve: 'continuous',
             }}
           >
-            <Text style={{ color: i <= step ? '#DEE21B' : '#fff' }}>
+            <Text
+              style={{ color: i <= step ? '#DEE21B' : '#fff', fontSize: 16 }}
+            >
               {i === step ? <Text>{titles[i - 1]}</Text> : i}
             </Text>
           </View>
@@ -102,7 +125,7 @@ const AddNewScreen = () => {
               style={{
                 backgroundColor: '#353535',
                 height: 6,
-                width: 8,
+                width: 16,
                 borderCurve: 'continuous',
               }}
             />
@@ -111,7 +134,7 @@ const AddNewScreen = () => {
       );
     }
     return (
-      <View style={{ flexDirection: 'row', marginTop: 70 }}>{indecator}</View>
+      <View style={{ flexDirection: 'row', marginTop: 20 }}>{indecator}</View>
     );
   };
   return (
@@ -121,25 +144,18 @@ const AddNewScreen = () => {
         alignItems: 'center',
       }}
     >
+      <AddNewTopBar />
       {renderStepsIndecator()}
 
       <View style={{ flex: 1, marginVertical: 25 }}>
         {step === 1 && (
-          <View>
-            <Text>Step 1</Text>
-            {selectedImage && (
-              <Image
-                source={{ uri: selectedImage }}
-                style={{ width: 200, height: 200 }}
-              />
-            )}
-          </View>
+          <AddNewPage1
+            selectedImage={selectedImage}
+            setSelectedImage={setSelectedImage}
+            openCrop={handleCrop}
+          />
         )}
-        {step === 2 && (
-          <View>
-            <Text>Step 2</Text>
-          </View>
-        )}
+        {step === 2 && <AddNewPage2 />}
         {step === 3 && (
           <View>
             <Text>Step 3</Text>
@@ -179,23 +195,25 @@ const AddNewScreen = () => {
             <Text>Previous</Text>
           </Pressable>
         )}
+
         {step < totalSteps ? (
           <Pressable
-            onPress={handleNext}
+            onPress={handleSave}
             style={{
-              borderRadius: 12,
+              borderRadius: step === 1 ? 20 : 12,
               borderWidth: 1,
-              width: 128,
+              width: step === 1 ? 319 : 128,
               height: 40,
               alignItems: 'center',
               justifyContent: 'center',
-              position: step === 1 ? 'absolute' : 'relative',
-              left: step === 1 ? 10.5 : 'auto',
-              bottom: step === 1 ? 0 : 'auto',
               backgroundColor: '#353535',
             }}
           >
-            <Text style={{ color: '#fff' }}>Next</Text>
+            {step === 1 ? (
+              <Text style={{ color: '#fff' }}>Save</Text>
+            ) : (
+              <Text style={{ color: '#fff' }}>Next</Text>
+            )}
           </Pressable>
         ) : (
           <Pressable

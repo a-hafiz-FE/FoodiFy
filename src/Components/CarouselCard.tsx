@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Image } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 type props = { title: string; rating: number; image: string };
 const CarouselCard = ({ title, rating, image }: props) => {
@@ -34,7 +35,7 @@ const CarouselCard = ({ title, rating, image }: props) => {
           gap: 4,
         }}
       >
-        <Text style={{ color: '#fff' }}>Star</Text>
+        <Ionicons name="star-outline" size={17} color={'#fff'} />
         <Text style={{ color: '#fff' }}>{rating}</Text>
       </View>
 

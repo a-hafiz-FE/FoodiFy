@@ -2,7 +2,28 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import React from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 
-const RecipeCard = () => {
+type props = {
+  recipeRating: number;
+  time: number;
+  difficulty: string;
+  recipeImage: string;
+  recipeName: string;
+  chefName: string;
+  chefImage: string;
+  chefRating: number;
+  recipeDesc: string;
+};
+const RecipeCard = ({
+  recipeRating,
+  time,
+  difficulty,
+  recipeImage,
+  recipeName,
+  chefName,
+  chefImage,
+  chefRating,
+  recipeDesc,
+}: props) => {
   return (
     <View
       style={{
@@ -21,14 +42,20 @@ const RecipeCard = () => {
     >
       <View
         style={{
-          backgroundColor: '#cbcbcb',
           height: 175,
           width: 138,
           borderRadius: 10,
           position: 'relative',
         }}
       >
-        <Image />
+        <Image
+          source={{ uri: `${recipeImage}` }}
+          style={{
+            height: 175,
+            width: 138,
+            borderRadius: 10,
+          }}
+        />
         <View
           style={{
             position: 'absolute',
@@ -42,8 +69,8 @@ const RecipeCard = () => {
             gap: 4,
           }}
         >
-          <Text style={{ color: '#fff' }}>Star</Text>
-          <Text style={{ color: '#fff' }}>4.5</Text>
+          <Ionicons name="star-outline" size={17} color={'#fff'} />
+          <Text style={{ color: '#fff' }}>{recipeRating}</Text>
         </View>
 
         <Text
@@ -53,9 +80,10 @@ const RecipeCard = () => {
             alignSelf: 'center',
             fontSize: 16,
             fontWeight: 'normal',
+            color: '#fff',
           }}
         >
-          time | dificulty
+          {time} | {difficulty}
         </Text>
       </View>
 
@@ -67,7 +95,7 @@ const RecipeCard = () => {
             letterSpacing: 0,
           }}
         >
-          Recipe Name
+          {recipeName}
         </Text>
 
         <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -75,11 +103,11 @@ const RecipeCard = () => {
             style={{
               height: 37,
               width: 37,
-              backgroundColor: '#cbcbcb',
               borderRadius: 99,
             }}
+            source={{ uri: `${chefImage}` }}
           />
-          <View style={{ gap: 3, flexDirection: 'column', flex: 1 }}>
+          <View style={{ gap: 3, flexDirection: 'column' }}>
             <Text
               style={{
                 fontSize: 12,
@@ -87,22 +115,20 @@ const RecipeCard = () => {
                 color: '#717171',
               }}
             >
-              Chef Name
+              {chefName}
             </Text>
             <View
               style={{
                 backgroundColor: '#DEE21B',
                 gap: 4,
                 paddingHorizontal: 5,
-                paddingVertical: 4,
                 borderRadius: 22,
-                flexBasis: 'auto',
                 alignSelf: 'flex-start',
                 flexDirection: 'row',
               }}
             >
-              <Text>Star</Text>
-              <Text style={{ color: '#000' }}>3.8</Text>
+              <Ionicons name="star-outline" size={17} color={'#000'} />
+              <Text style={{ color: '#000' }}>{chefRating}</Text>
             </View>
           </View>
         </View>
@@ -114,10 +140,7 @@ const RecipeCard = () => {
             marginRight: 40,
           }}
         >
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Aspernatur
-          consequuntur repellat itaque tempore nam quas nisi commodi,
-          asperiores, dolore praesentium unde sunt! Corrupti eaque quia
-          molestias? Cumque fuga adipisci pariatur!
+          {recipeDesc}
         </Text>
       </View>
 

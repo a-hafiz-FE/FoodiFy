@@ -1,12 +1,24 @@
-import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, ScrollView, FlatList } from 'react-native';
 import { styles } from './styles';
 
 import HomeTopBar from './HomeComponents/HomeTopBar';
 import CarouselCard from '../../Components/CarouselCard';
 import RecipeCard from '../../Components/RecipeCard';
+import { useMealStore } from '../../app/mealStore';
 
 const HomeScreen = () => {
+  const mealsArray = useMealStore(s => s.mealsArray);
+  const meals = useMemo(() => mealsArray().slice(0, 5), [mealsArray]);
+
+  const mealsIds = useMealStore(s => s.mealsIds);
+  const getMealCard = useMealStore(s => s.getMealCard);
+
+  const cards = useMemo(
+    () => mealsIds.map(id => getMealCard(id)).slice(0, 3),
+    [mealsIds, getMealCard],
+  );
+
   return (
     <View style={styles.container}>
       {/* Top Bar */}
@@ -25,16 +37,18 @@ const HomeScreen = () => {
             <Text style={{ fontSize: 32, marginVertical: 10, marginLeft: 10 }}>
               Popular Recipes
             </Text>
-            <ScrollView
+            <FlatList
               horizontal={true}
               showsHorizontalScrollIndicator={false}
-            >
-              <CarouselCard></CarouselCard>
-              <CarouselCard></CarouselCard>
-              <CarouselCard></CarouselCard>
-              <CarouselCard></CarouselCard>
-              <CarouselCard></CarouselCard>
-            </ScrollView>
+              data={meals}
+              renderItem={({ item }) => (
+                <CarouselCard
+                  title={item.title}
+                  rating={item.rating}
+                  image={item.image}
+                />
+              )}
+            />
           </View>
 
           <View
@@ -54,9 +68,20 @@ const HomeScreen = () => {
             >
               The Latest Recipes
             </Text>
-            <RecipeCard></RecipeCard>
-            <RecipeCard></RecipeCard>
-            <RecipeCard></RecipeCard>
+            {cards.map(item => (
+              <RecipeCard
+                key={item?.id}
+                recipeRating={item?.rating ?? 0}
+                time={item?.timeMinutes ?? 0}
+                difficulty={item?.difficulty ?? ''}
+                recipeImage={item?.image ?? ''}
+                recipeName={item?.title ?? ''}
+                chefName={item?.chef?.name ?? ''}
+                chefImage={item?.chef?.avatarUrl ?? ''}
+                chefRating={item?.chef?.rating ?? 0}
+                recipeDesc={item?.description ?? ''}
+              />
+            ))}
           </View>
         </View>
       </ScrollView>

@@ -1,13 +1,13 @@
 import Slider from '@react-native-community/slider';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
 
 type props = { clearSignal: number };
 
 const CookTime = ({ clearSignal }: props) => {
-  const [minutes, setMinutes] = React.useState(0);
+  const [minutes, setMinutes] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setMinutes(0);
   }, [clearSignal]);
   const hours = Math.floor(minutes / 60);

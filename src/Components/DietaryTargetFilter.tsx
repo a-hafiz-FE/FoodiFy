@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
 import CustomButton from './CustomButton';
 
@@ -14,15 +14,33 @@ const DietaryOptions = [
 type props = { clearSignal: number };
 
 const DietaryTargetFilter = ({ clearSignal }: props) => {
-  const [selected, setSelected] = React.useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setSelected([]);
   }, [clearSignal]);
+
   const toggle = (label: string) => {
-    setSelected(prev =>
-      prev.includes(label) ? prev.filter(x => x !== label) : [...prev, label],
-    );
+    setSelected(prev => {
+      const isOn = prev.includes(label);
+
+      // toggle OFF
+      if (isOn) return prev.filter(x => x !== label);
+
+      // toggle ON with mutual-exclusion rule
+      const opposite =
+        label === 'Low Fat'
+          ? 'High Fat'
+          : label === 'High Fat'
+          ? 'Low Fat'
+          : null;
+
+      const withoutOpposite = opposite
+        ? prev.filter(x => x !== opposite)
+        : prev;
+
+      return [...withoutOpposite, label];
+    });
   };
 
   return (

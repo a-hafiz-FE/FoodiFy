@@ -1,12 +1,12 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 
-const TagCard = () => {
+type props = { name: string };
+const TagCard = ({ name }: props) => {
   return (
     <View
       style={{
         flexDirection: 'row',
-        justifyContent: 'center',
         alignItems: 'center',
         gap: 8,
       }}
@@ -23,7 +23,7 @@ const TagCard = () => {
       >
         <Text style={{ fontSize: 22 }}>#</Text>
       </View>
-      <Text style={{ fontSize: 16, fontWeight: 'semibold' }}>#TagName</Text>
+      <Text style={{ fontSize: 20, fontWeight: 'semibold' }}>{name}</Text>
     </View>
   );
 };
