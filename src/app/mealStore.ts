@@ -1,168 +1,188 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { v4 as uuid } from 'uuid';
 import { mmkvStorage } from './storage';
-import { dummyMeals, dummyChefs, dummyTags } from './DummyMeals';
+import firestore from '@react-native-firebase/firestore';
+import {
+  Chef,
+  defaultDraft,
+  DEMO_CHEF_ID,
+  Id,
+  Meal,
+  Store,
+  Tag,
+  toChef,
+  toMeal,
+  toTag,
+} from './StoreConstants';
 
-export type Difficulty = 'easy' | 'medium' | 'professional';
-export type Id = string;
-export type Chef = { id: Id; name: string; avatarUrl: string; rating: number };
-export type Tag = { id: Id; label: string };
-export type Meal = {
-  id: Id;
-  title: string;
-  description: string;
-  image: string;
-  chefId: string;
-  tagsIds: string[];
-  rating: number;
-  timeMinutes: number;
-  difficulty: Difficulty;
-};
+type Unsub = () => void;
 
-const SEED_VERSION = 2;
-
-type MealsSlice = {
-  mealsById: Record<Id, Meal>;
-  mealsIds: Id[];
-
-  addmeal: (meal: Omit<Meal, 'id'>) => Id;
-  upsertMeals: (meals: Meal[]) => void;
-
-  mealsArray: () => Meal[];
-  mealsByChef: (chefId: Id) => Meal[];
-  getMealCard: (
-    mealId: Id,
-  ) => (Meal & { chef?: Chef; tags: Tag[] }) | undefined;
-};
-
-type ChefsSlice = {
-  chefsById: Record<Id, Chef>;
-  addChef: (chef: Omit<Chef, 'id'>) => Id;
-  upsertChefs: (chefs: Chef[]) => void;
-};
-
-type TagsSlice = {
-  tagsById: Record<Id, Tag>;
-  addTag: (tag: Omit<Tag, 'id'>) => Id;
-  upsertTags: (tags: Tag[]) => void;
-};
-
-type Store = MealsSlice &
-  ChefsSlice &
-  TagsSlice & {
-    seedVersion: number;
-    seedIfEmpty: () => void;
-  };
-
-const clamp = (n: number) => Math.min(5, Math.max(0, n));
-const round1 = (n: number) => Math.round(n * 10) / 10;
-
-const seedMeals = (meals: Meal[]) => {
-  const mealsById: Record<Id, Meal> = {};
-  const mealsIds: Id[] = [];
-
-  for (const m of meals) {
-    mealsById[m.id] = { ...m, rating: round1(clamp(m.rating)) };
-    mealsIds.push(m.id);
+export const useMealStore = create<
+  Store & {
+    listenersStarted: boolean;
+    unsubs: { meals?: Unsub; chefs?: Unsub; tags?: Unsub };
+    stopListeners: () => void;
   }
-
-  return { mealsById, mealsIds };
-};
-
-const toMap = <T extends { id: Id }>(arr: readonly T[]) =>
-  Object.fromEntries(arr.map(x => [x.id, x])) as Record<Id, T>;
-
-export const useMealStore = create<Store>()(
+>()(
   persist(
     (set, get) => ({
-      // ====== Tag ======
+      // ===== Listener Guard State =====
+      listenersStarted: false,
+      unsubs: {},
+
+      stopListeners: () => {
+        const { unsubs } = get();
+        unsubs.meals?.();
+        unsubs.chefs?.();
+        unsubs.tags?.();
+        set({ listenersStarted: false, unsubs: {} });
+      },
+
+      // ===== Draft =====
+      draft: defaultDraft,
+      setDraft: patch =>
+        set(s => ({
+          draft: { ...s.draft, ...patch },
+          submitStatus: 'idle',
+          submitError: undefined,
+        })),
+      resetDraft: () => set({ draft: defaultDraft }),
+
+      submitStatus: 'idle',
+      submitError: undefined,
+
+      submitDraft: async () => {
+        const { draft, resetDraft } = get();
+
+        // validation
+        if (!draft.mealName.trim()) {
+          set({ submitStatus: 'error', submitError: 'Meal name is required' });
+          return;
+        }
+        if (!draft.cookTimeMinutes) {
+          set({ submitStatus: 'error', submitError: 'Cook time is required' });
+          return;
+        }
+        if (!draft.difficulty) {
+          set({ submitStatus: 'error', submitError: 'Difficulty is required' });
+          return;
+        }
+        if (!draft.dishType) {
+          set({ submitStatus: 'error', submitError: 'Dish type is required' });
+          return;
+        }
+
+        set({ submitStatus: 'loading', submitError: undefined });
+
+        try {
+          const steps = draft.steps
+            .sort((a, b) => a.order - b.order)
+            .map(s => s.text.trim())
+            .filter(Boolean);
+
+          await firestore()
+            .collection('meals')
+            .add({
+              chefId: DEMO_CHEF_ID,
+
+              mealName: draft.mealName.trim(),
+              mealImage: draft.imageLocalUri ?? '', // later: replace with Storage URL
+              description: '',
+
+              servings: draft.servings ?? 1,
+              cookTimeMinutes: draft.cookTimeMinutes,
+              difficulty: draft.difficulty,
+              dishType: draft.dishType,
+
+              dietaryTargets: draft.dietaryTargets, // array
+              tagIds: draft.hashTags, // TEMP (later: real tagIds)
+
+              ingredients: draft.ingredients,
+              steps, // string[]
+
+              ratingAvg: 0,
+              ratingCount: 0,
+              likeCount: 0,
+              commentCount: 0,
+
+              status: 'published',
+              createdAt: firestore.FieldValue.serverTimestamp(),
+              updatedAt: firestore.FieldValue.serverTimestamp(),
+            });
+
+          set({ submitStatus: 'success' });
+          resetDraft();
+        } catch (e: any) {
+          set({
+            submitStatus: 'error',
+            submitError: e?.message ?? 'Failed to submit',
+          });
+        }
+      },
+
+      // ===== Tags =====
       tagsById: {},
+      listenTags: () =>
+        firestore()
+          .collection('tags')
+          .onSnapshot(
+            snap => {
+              const tagsById: Record<Id, Tag> = {};
+              snap.docs.forEach(
+                doc => (tagsById[doc.id] = toTag(doc.id, doc.data())),
+              );
+              set({ tagsById });
+            },
+            err => console.log('listenTags error', err),
+          ),
 
-      addTag: tag => {
-        const id = uuid();
-        const fixedtags: Tag = {
-          id,
-          ...tag,
-        };
-        set(s => ({
-          tagsById: { ...s.tagsById, [id]: fixedtags },
-        }));
-        return id;
-      },
-
-      upsertTags: tags =>
-        set(s => {
-          const next = { ...s.tagsById };
-          tags.forEach(t => (next[t.id] = t));
-          return { tagsById: next };
-        }),
-
-      // ======= Chef ========
+      // ===== Chefs =====
       chefsById: {},
+      listenChefs: () =>
+        firestore()
+          .collection('chefs')
+          .where('isChef', '==', true)
+          .onSnapshot(
+            snap => {
+              const chefsById: Record<Id, Chef> = {};
+              snap.docs.forEach(
+                doc => (chefsById[doc.id] = toChef(doc.id, doc.data())),
+              );
+              set({ chefsById });
+            },
+            err => console.log('listenChefs error', err),
+          ),
 
-      addChef: chef => {
-        const id = uuid();
-        const fixedchefs: Chef = {
-          id,
-          ...chef,
-          rating: round1(clamp(chef.rating)),
-        };
-        set(s => ({
-          chefsById: { ...s.chefsById, [id]: fixedchefs },
-        }));
-        return id;
-      },
-
-      upsertChefs: chefs =>
-        set(s => {
-          const next = { ...s.chefsById };
-          chefs.forEach(c => (next[c.id] = c));
-          return { chefsById: next };
-        }),
-
-      // ======= Meal =======
+      // ===== Meals =====
       mealsById: {},
       mealsIds: [],
+      listenMeals: () =>
+        firestore()
+          .collection('meals')
+          .orderBy('createdAt', 'desc')
+          .onSnapshot(
+            snap => {
+              console.log('🔥 meals snapshot size:', snap.size);
+              const meals = snap.docs.map(d => toMeal(d.id, d.data()));
+              console.log('🔥 first meal raw:', snap.docs[0]?.data());
+              console.log('🔥 first meal mapped:', meals[0]);
 
-      addmeal: meal => {
-        const id = uuid();
-        const fixed: Meal = {
-          id,
-          ...meal,
-          rating: round1(clamp(meal.rating)),
-        };
+              const mealsById: Record<Id, Meal> = {};
+              const mealsIds: Id[] = [];
+              for (const m of meals) {
+                mealsById[m.id] = m;
+                mealsIds.push(m.id);
+              }
+              set({ mealsById, mealsIds });
+            },
+            err => console.log('listenMeals error', err),
+          ),
 
-        set(s => ({
-          mealsById: { ...s.mealsById, [id]: fixed },
-          mealsIds: [id, ...s.mealsIds],
-        }));
-
-        return id;
-      },
-
-      upsertMeals: meals =>
-        set(s => {
-          const nextById = { ...s.mealsById };
-          const nextIds = [...s.mealsIds];
-
-          for (const m of meals) {
-            const exists = !!nextById[m.id];
-            nextById[m.id] = {
-              ...m,
-              rating: round1(clamp(m.rating)),
-            };
-            if (!exists) nextIds.unshift(m.id);
-          }
-
-          return { mealsById: nextById, mealsIds: nextIds };
-        }),
-
+      // ===== Selectors =====
       mealsArray: () =>
         get()
           .mealsIds.map(id => get().mealsById[id])
           .filter(Boolean),
-
       mealsByChef: chefId =>
         get()
           .mealsIds.map(id => get().mealsById[id])
@@ -176,40 +196,27 @@ export const useMealStore = create<Store>()(
         return {
           ...meal,
           chef: chefsById[meal.chefId],
-          tags: meal.tagsIds.map(id => tagsById[id]).filter(Boolean),
+          tags: meal.tagIds.map(id => tagsById[id]).filter(Boolean),
         };
       },
 
-      seedVersion: 0,
-      seedIfEmpty: () => {
-        const { seedVersion } = get();
-        if (seedVersion === SEED_VERSION) return;
+      // Start all listeners with one call
+      startListeners: () => {
+        const unsubMeals = get().listenMeals();
+        const unsubChefs = get().listenChefs();
+        const unsubTags = get().listenTags();
 
-        const seeded = seedMeals(dummyMeals);
-
-        set(() => ({
-          mealsById: seeded.mealsById,
-          mealsIds: seeded.mealsIds,
-
-          chefsById: toMap(dummyChefs),
-          tagsById: toMap(dummyTags),
-        }));
+        return () => {
+          unsubMeals();
+          unsubChefs();
+          unsubTags();
+        };
       },
     }),
     {
       name: 'meal-storage',
-      partialize: s => ({
-        mealsById: s.mealsById,
-        mealsIds: s.mealsIds,
-        chefsById: s.chefsById,
-        tagsById: s.tagsById,
-        seedVersion: s.seedVersion,
-      }),
       storage: createJSONStorage(() => mmkvStorage),
-      onRehydrateStorage: () => (state, error) => {
-        if (error || !state) return;
-        state.seedIfEmpty();
-      },
+      partialize: s => ({ draft: s.draft }), // ✅ persist only draft
     },
   ),
 );

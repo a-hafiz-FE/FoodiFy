@@ -27,7 +27,7 @@ const DishOptions = [
   'Appetizers',
 ];
 
-const AddNewPage2 = () => {
+const RecipeInformation = () => {
   // const [name, setName] = useState('');
   const [serving, setServing] = useState(1);
   const [selected, setSelected] = useState<string | null>(null);
@@ -179,4 +179,4 @@ const AddNewPage2 = () => {
   );
 };
 
-export default AddNewPage2;
+export default RecipeInformation;

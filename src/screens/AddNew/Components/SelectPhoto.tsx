@@ -7,7 +7,7 @@ type props = {
   openCrop: () => Promise<void>;
 };
 
-const AddNewPage1 = ({ selectedImage, setSelectedImage, openCrop }: props) => {
+const SelectPhoto = ({ selectedImage, setSelectedImage, openCrop }: props) => {
   return (
     <View
       style={{
@@ -58,4 +58,4 @@ const AddNewPage1 = ({ selectedImage, setSelectedImage, openCrop }: props) => {
   );
 };
 
-export default AddNewPage1;
+export default SelectPhoto;

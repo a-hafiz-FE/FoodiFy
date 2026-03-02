@@ -8,16 +8,26 @@ import RecipeCard from '../../Components/RecipeCard';
 import { useMealStore } from '../../app/mealStore';
 
 const HomeScreen = () => {
-  const mealsArray = useMealStore(s => s.mealsArray);
-  const meals = useMemo(() => mealsArray().slice(0, 5), [mealsArray]);
-
+  // 1) get ids + maps from store
   const mealsIds = useMealStore(s => s.mealsIds);
+  const mealsById = useMealStore(s => s.mealsById);
   const getMealCard = useMealStore(s => s.getMealCard);
 
-  const cards = useMemo(
-    () => mealsIds.map(id => getMealCard(id)).slice(0, 3),
-    [mealsIds, getMealCard],
-  );
+  // 2) Popular Recipes (first 5)
+  const popularMeals = useMemo(() => {
+    return mealsIds
+      .slice(0, 5)
+      .map(id => mealsById[id])
+      .filter(Boolean);
+  }, [mealsIds, mealsById]);
+
+  // 3) Latest Recipes cards (first 3 with chef+tags)
+  const latestCards = useMemo(() => {
+    return mealsIds
+      .slice(0, 3)
+      .map(id => getMealCard(id))
+      .filter(Boolean);
+  }, [mealsIds, getMealCard]);
 
   return (
     <View style={styles.container}>
@@ -40,12 +50,12 @@ const HomeScreen = () => {
             <FlatList
               horizontal={true}
               showsHorizontalScrollIndicator={false}
-              data={meals}
+              data={popularMeals}
               renderItem={({ item }) => (
                 <CarouselCard
-                  title={item.title}
-                  rating={item.rating}
-                  image={item.image}
+                  title={item.mealName}
+                  rating={item.ratingAvg}
+                  image={item.mealImage}
                 />
               )}
             />
@@ -68,17 +78,17 @@ const HomeScreen = () => {
             >
               The Latest Recipes
             </Text>
-            {cards.map(item => (
+            {latestCards.map(item => (
               <RecipeCard
                 key={item?.id}
-                recipeRating={item?.rating ?? 0}
-                time={item?.timeMinutes ?? 0}
+                recipeRating={item?.ratingAvg ?? 0}
+                time={item?.cookTimeMinutes ?? 0}
                 difficulty={item?.difficulty ?? ''}
-                recipeImage={item?.image ?? ''}
-                recipeName={item?.title ?? ''}
-                chefName={item?.chef?.name ?? ''}
+                recipeImage={item?.mealImage ?? ''}
+                recipeName={item?.mealName ?? ''}
+                chefName={item?.chef?.displayName ?? ''}
                 chefImage={item?.chef?.avatarUrl ?? ''}
-                chefRating={item?.chef?.rating ?? 0}
+                chefRating={item?.chef?.ratingAvg ?? 0}
                 recipeDesc={item?.description ?? ''}
               />
             ))}

@@ -48,8 +48,7 @@ const HashTagsInput = () => {
       <View style={{ flexDirection: 'column', gap: 8, width: '100%' }}>
         <View
           style={{
-            backgroundColor: 'red',
-            maxHeight: 40,
+            marginTop: 10,
             flexDirection: 'row',
             flexWrap: 'wrap',
             gap: 8,
@@ -65,8 +64,11 @@ const HashTagsInput = () => {
           style={{
             flexDirection: 'row',
             padding: 2,
+            flex: 1,
+            width: '100%',
             alignItems: 'center',
             gap: 4,
+            marginBottom: 10,
           }}
         >
           <TextInput

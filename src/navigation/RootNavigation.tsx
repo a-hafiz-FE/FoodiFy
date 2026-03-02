@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import { RootStackParamList } from './types';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,10 +7,27 @@ import AddNewScreen from '../screens/AddNew/AddNewScreen';
 import AnimatedTabrBar from './AnimatedTabrBar';
 import SearchDrawer from '../screens/Search/SearchDrawer';
 import HomeDrawer from '../screens/Home/HomeDrawer';
+import { useMealStore } from '../app/mealStore';
+import firebaseApp from '@react-native-firebase/app';
 
 const Tab = createBottomTabNavigator<RootStackParamList>();
 
 const RootNavigation = () => {
+  const opts = firebaseApp.app().options;
+
+  console.log('🔥 projectId:', opts.projectId);
+  console.log('🔥 appId:', opts.appId);
+  console.log('🔥 storageBucket:', opts.storageBucket);
+
+  useEffect(() => {
+    console.log('▶️ starting listeners');
+    const stop = useMealStore.getState().startListeners();
+    return () => {
+      console.log('⏹️ stopping listeners');
+      stop();
+    };
+  }, []);
+
   return (
     <Tab.Navigator
       tabBar={props => <AnimatedTabrBar {...props} />}

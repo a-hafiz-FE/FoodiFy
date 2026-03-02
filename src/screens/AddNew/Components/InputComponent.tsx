@@ -10,7 +10,6 @@ const InputComponent = ({ title, height, children }: props) => {
         backgroundColor: '#4058A0',
         width: 348,
         flexDirection: 'column',
-        flexWrap: 'wrap',
         minHeight: height,
         borderRadius: 8,
       }}

@@ -1,19 +1,17 @@
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useRef, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
-import {
-  type ImageLibraryOptions,
-  type PhotoQuality,
-} from 'react-native-image-picker';
-import AddNewPage1 from './Components/AddNewPage1';
+import { Text, View } from 'react-native';
+import SelectPhoto from './Components/SelectPhoto';
 import ImagePicker from 'react-native-image-crop-picker';
-import AddNewPage2 from './Components/AddNewPage2';
+import RecipeInformation from './Components/RecipeInformation';
 import AddNewTopBar from './Components/AddNewTopBar';
+import Ingredients from './Components/Ingredients';
+import ControlButtons from './Components/ControlButtons';
 
 const AddNewScreen = () => {
   const [step, setStep] = useState(1);
   const [selectedImage, setSelectedImage] = useState('');
-  const totalSteps = 5;
+  const totalSteps = 4;
 
   const handleNext = () => {
     setStep(p => Math.min(p + 1, totalSteps));
@@ -27,49 +25,14 @@ const AddNewScreen = () => {
     setStep(p => Math.min(p + 1, totalSteps));
   };
 
-  const options: ImageLibraryOptions = {
-    mediaType: 'photo',
-    selectionLimit: 1,
-    quality: 80 as PhotoQuality,
-  };
-
   const titles = [
     'Select Photo',
     'Recipe Information',
     'Ingredients',
     'Introduction',
-    'Recipe Information',
   ];
 
   const openedOnce = useRef(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!openedOnce.current) {
-        openedOnce.current = true;
-
-        const t = setTimeout(async () => {
-          try {
-            const res = await ImagePicker.openPicker({
-              mediaType: 'photo',
-            });
-            setSelectedImage(res.path);
-          } catch (e) {
-            console.log(e);
-          }
-        }, 100);
-
-        return () => {
-          clearTimeout(t);
-        };
-      }
-      return () => {
-        openedOnce.current = false;
-        setStep(1);
-        setSelectedImage('');
-      };
-    }, []),
-  );
 
   const handleCrop = async () => {
     if (!selectedImage) return;
@@ -137,6 +100,35 @@ const AddNewScreen = () => {
       <View style={{ flexDirection: 'row', marginTop: 20 }}>{indecator}</View>
     );
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!openedOnce.current) {
+        openedOnce.current = true;
+
+        const t = setTimeout(async () => {
+          try {
+            const res = await ImagePicker.openPicker({
+              mediaType: 'photo',
+            });
+            setSelectedImage(res.path);
+          } catch (e) {
+            console.log(e);
+          }
+        }, 100);
+
+        return () => {
+          clearTimeout(t);
+        };
+      }
+      return () => {
+        openedOnce.current = false;
+        setStep(1);
+        setSelectedImage('');
+      };
+    }, []),
+  );
+
   return (
     <View
       style={{
@@ -149,89 +141,23 @@ const AddNewScreen = () => {
 
       <View style={{ flex: 1, marginVertical: 25 }}>
         {step === 1 && (
-          <AddNewPage1
+          <SelectPhoto
             selectedImage={selectedImage}
             setSelectedImage={setSelectedImage}
             openCrop={handleCrop}
           />
         )}
-        {step === 2 && <AddNewPage2 />}
-        {step === 3 && (
-          <View>
-            <Text>Step 3</Text>
-          </View>
-        )}
-        {step === 4 && (
-          <View>
-            <Text>Step 4</Text>
-          </View>
-        )}
-        {step === 5 && (
-          <View>
-            <Text>Step 5</Text>
-          </View>
-        )}
+        {step === 2 && <RecipeInformation />}
+        {step === 3 && <Ingredients />}
+        {step === 4 && <Ingredients />}
       </View>
-      <View
-        style={{
-          position: 'absolute',
-          bottom: 30,
-          flexDirection: 'row',
-          gap: 20,
-        }}
-      >
-        {step > 1 && (
-          <Pressable
-            onPress={handelPrev}
-            style={{
-              borderRadius: 12,
-              borderWidth: 1,
-              width: 128,
-              height: 40,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text>Previous</Text>
-          </Pressable>
-        )}
-
-        {step < totalSteps ? (
-          <Pressable
-            onPress={handleSave}
-            style={{
-              borderRadius: step === 1 ? 20 : 12,
-              borderWidth: 1,
-              width: step === 1 ? 319 : 128,
-              height: 40,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#353535',
-            }}
-          >
-            {step === 1 ? (
-              <Text style={{ color: '#fff' }}>Save</Text>
-            ) : (
-              <Text style={{ color: '#fff' }}>Next</Text>
-            )}
-          </Pressable>
-        ) : (
-          <Pressable
-            onPress={handleNext}
-            style={{
-              borderRadius: 12,
-              borderWidth: 1,
-              width: 128,
-              height: 40,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#353535',
-            }}
-          >
-            <Text style={{ color: '#fff' }}>Finish</Text>
-          </Pressable>
-        )}
-      </View>
+      <ControlButtons
+        step={step}
+        totalSteps={totalSteps}
+        handelPrev={handelPrev}
+        handleNext={handleNext}
+        handleSave={handleSave}
+      />
     </View>
   );
 };
