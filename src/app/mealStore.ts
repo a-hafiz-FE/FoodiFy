@@ -38,8 +38,6 @@ export const useMealStore = create<
     listenersStarted: boolean;
     unsubs: { meals?: Unsub; chefs?: Unsub; tags?: Unsub };
     stopListeners: () => void;
-
-    // ✅ internal helper
     ensureTagsExist: (hashTags: string[]) => Promise<string[]>;
   }
 >()(
@@ -50,6 +48,7 @@ export const useMealStore = create<
       // Tracks whether real-time Firestore listeners are
       // currently active, and holds their unsubscribe fns.
       // ─────────────────────────────────────────────
+
       listenersStarted: false,
       unsubs: {},
 
@@ -76,6 +75,7 @@ export const useMealStore = create<
       // Holds the in-progress meal form data.
       // Persisted to MMKV so it survives app restarts.
       // ─────────────────────────────────────────────
+
       draft: defaultDraft,
 
       /**
@@ -148,7 +148,6 @@ export const useMealStore = create<
 
         for (const id of tagIds) {
           const ref = doc(db, 'tags', id);
-
           const isNew = !existing?.[id];
 
           batch.set(
@@ -232,12 +231,12 @@ export const useMealStore = create<
           // Upsert tags first so tagIds are valid references
           const tagIds = await get().ensureTagsExist(draft.hashTags);
 
-          // Normalize steps: sort by order, trim whitespace, drop empty entries
+          // Normalize steps: sort by order, re-index cleanly, trim whitespace, drop empty entries
           const steps = draft.steps
             .slice()
             .sort((a, b) => a.order - b.order)
-            .map(s => s.text.trim())
-            .filter(Boolean);
+            .map((s, i) => ({ order: i + 1, text: s.text.trim() }))
+            .filter(s => s.text.length > 0);
 
           // Normalize ingredients: trim and drop blanks
           const ingredients = (draft.ingredients ?? [])
@@ -254,10 +253,9 @@ export const useMealStore = create<
             difficulty: draft.difficulty,
             dishTypes: draft.dishTypes,
             dietaryTargets: draft.dietaryTargets,
-            tagIds, // ✅ now real tag document IDs
+            tagIds,
             ingredients,
             steps,
-
             ratingAvg: 0,
             ratingCount: 0,
             likeCount: 0,
@@ -280,6 +278,7 @@ export const useMealStore = create<
       // ─────────────────────────────────────────────
       // TAGS LISTENER
       // ─────────────────────────────────────────────
+
       tagsById: {},
 
       /**
@@ -312,6 +311,7 @@ export const useMealStore = create<
       // ─────────────────────────────────────────────
       // CHEFS LISTENER
       // ─────────────────────────────────────────────
+
       chefsById: {},
 
       /**
@@ -344,6 +344,7 @@ export const useMealStore = create<
       // ─────────────────────────────────────────────
       // MEALS LISTENER
       // ─────────────────────────────────────────────
+
       mealsById: {},
       mealsIds: [],
 
@@ -445,6 +446,7 @@ export const useMealStore = create<
       // ─────────────────────────────────────────────
       // SEARCH FILTERS
       // ─────────────────────────────────────────────
+
       searchFilters: defaultSearchFilters,
 
       /**

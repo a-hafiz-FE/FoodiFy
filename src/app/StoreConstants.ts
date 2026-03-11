@@ -29,7 +29,10 @@ export type Chef = {
   ratingAvg: number;
   ratingCount: number;
 };
+
 export type Tag = { id: Id; label: string };
+
+export type Step = { order: number; text: string };
 
 export type Meal = {
   id: Id;
@@ -48,13 +51,15 @@ export type Meal = {
   tagIds: string[];
 
   ingredients: string[];
-  steps: { order: number; text: string }[];
+  steps: Step[]; // ✅ always { order, text }[] — both in memory and in Firestore
 
   ratingAvg: number;
   ratingCount: number;
   likeCount: number;
   commentCount: number;
 };
+
+export type Unsub = () => void;
 
 export type MealDraft = {
   imageLocalUri: string | null;
@@ -66,21 +71,18 @@ export type MealDraft = {
   dietaryTargets: DietaryTarget[];
   hashTags: string[];
   ingredients: string[];
-  steps: { order: number; text: string }[];
+  steps: Step[]; // ✅ same shape as Meal.steps — no transformation needed
 };
 
 export const defaultDraft: MealDraft = {
   mealName: '',
   imageLocalUri: null,
-
   servings: null,
   cookTimeMinutes: null,
   difficulty: null,
-
   dishTypes: [],
   dietaryTargets: [],
   hashTags: [],
-
   ingredients: [],
   steps: [],
 };
@@ -109,9 +111,34 @@ export const normalizeDietary = (v: any): DietaryTarget[] => {
   return [];
 };
 
-export const normalizeSteps = (v: any): { order: number; text: string }[] => {
+/**
+ * Normalizes raw Firestore step data into a consistent `Step[]` shape.
+ *
+ * Handles two cases:
+ *  - New format: Firestore contains `{ order, text }` objects — passed through directly.
+ *  - Legacy format: Firestore contains plain strings (saved by the old submitDraft) —
+ *    re-inflated to `{ order, text }` using the array index as the order.
+ *
+ * This dual handling ensures backward compatibility with any meals saved before
+ * the steps inconsistency was fixed, while correctly reading all new meals.
+ *
+ * @param v - Raw value from a Firestore document's `steps` field.
+ * @returns A normalized array of `Step` objects, or an empty array if input is invalid.
+ */
+export const normalizeSteps = (v: any): Step[] => {
   if (!Array.isArray(v)) return [];
-  return v.map((x, i) => ({ order: i + 1, text: String(x) }));
+
+  return v.map((x, i) => {
+    // ✅ New format: already a { order, text } object
+    if (typeof x === 'object' && x !== null && 'text' in x) {
+      return {
+        order: Number(x.order ?? i + 1),
+        text: String(x.text),
+      };
+    }
+    // ✅ Legacy format: plain string saved by the old submitDraft
+    return { order: i + 1, text: String(x) };
+  });
 };
 
 export const toMeal = (docId: string, d: any): Meal => ({
@@ -125,13 +152,13 @@ export const toMeal = (docId: string, d: any): Meal => ({
   servings: Number(d.servings ?? 0),
   cookTimeMinutes: Number(d.cookTimeMinutes ?? 0),
   difficulty: (d.difficulty ?? 'easy') as Difficulty,
-  dishTypes: Array.isArray(d.dishTypes) ? d.dishTypes : [], // ✅ safe
+  dishTypes: Array.isArray(d.dishTypes) ? d.dishTypes : [],
 
   dietaryTargets: normalizeDietary(d.dietaryTargets),
   tagIds: Array.isArray(d.tagIds) ? d.tagIds.map(String) : [],
 
   ingredients: Array.isArray(d.ingredients) ? d.ingredients.map(String) : [],
-  steps: normalizeSteps(d.steps),
+  steps: normalizeSteps(d.steps), // ✅ handles both object and legacy string formats
 
   ratingAvg: Number(d.ratingAvg ?? 0),
   ratingCount: Number(d.ratingCount ?? 0),
@@ -188,7 +215,6 @@ export type DraftSlice = {
 };
 
 export type SearchSlice = {
-  // ✅ search filters
   searchFilters: SearchFilters;
   setSearchFilters: (patch: Partial<SearchFilters>) => void;
   clearSearchFilters: () => void;
@@ -199,7 +225,11 @@ export type Store = MealsSlice &
   TagsSlice &
   DraftSlice &
   SearchSlice & {
-    startListeners: () => () => void; // returns cleanup function
+    startListeners: () => () => void;
+    listenersStarted: boolean;
+    unsubs: { meals?: Unsub; chefs?: Unsub; tags?: Unsub };
+    stopListeners: () => void;
+    ensureTagsExist: (hashTags: string[]) => Promise<string[]>;
   };
 
 export const clamp = (n: number) => Math.min(5, Math.max(0, n));
@@ -207,7 +237,6 @@ export const round1 = (n: number) => Math.round(n * 10) / 10;
 
 export const DEMO_CHEF_ID = 'nL8Yef29rsvRWg9IOUrB';
 
-// ✅ turn "#Low Fat" -> "low_fat"
 export const toTagId = (hash: string) =>
   hash
     .trim()
@@ -216,5 +245,4 @@ export const toTagId = (hash: string) =>
     .replace(/\s+/g, '_')
     .replace(/[^\p{L}\p{N}_]/gu, '');
 
-// ✅ optional: "#low_fat" as label
 export const toTagLabel = (tagId: string) => `#${tagId}`;
