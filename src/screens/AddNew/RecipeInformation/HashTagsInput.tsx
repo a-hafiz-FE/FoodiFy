@@ -1,29 +1,36 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import InputComponent from './InputComponent';
-import {
-  TextInput,
-  View,
-  Pressable,
-  Text,
-  Keyboard,
-  KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-} from 'react-native';
+import { TextInput, View, Pressable, Text } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const HashTagsInput = () => {
-  const [hashtags, pushHashtag] = useState<string[]>([]);
-  const [value, setValue] = useState('');
+type Props = {
+  value: string[];
+  onChange: (next: string[]) => void;
+  clearSignal?: number;
+};
+
+const HashTagsInput = ({ value, onChange, clearSignal }: Props) => {
+  const [input, setInput] = useState('');
+  const prevClear = useRef<number | undefined>(clearSignal);
+
+  // ✅ clear ONLY when clearSignal changes
+  useEffect(() => {
+    if (clearSignal === undefined) return;
+    if (prevClear.current === undefined) {
+      prevClear.current = clearSignal; // don't clear on first mount
+      return;
+    }
+    if (prevClear.current !== clearSignal) {
+      onChange([]);
+      prevClear.current = clearSignal;
+    }
+  }, [clearSignal]); // ✅ don't depend on onChange
 
   const normalize = (text: string) => {
-    // trim, remove spaces, keep letters/numbers/underscore, lowercase
     let t = text.trim();
     if (!t) return '';
-
-    // allow user to type "#" or not
     if (t.startsWith('#')) t = t.slice(1);
 
-    // replace spaces with underscore + remove invalid chars
     t = t
       .replace(/\s+/g, '_')
       .replace(/[^\p{L}\p{N}_]/gu, '')
@@ -33,16 +40,17 @@ const HashTagsInput = () => {
   };
 
   const addHashtag = () => {
-    const tag = normalize(value);
+    const tag = normalize(input);
     if (!tag) return;
 
-    pushHashtag(p => (p.includes(tag) ? p : [tag, ...p]));
-    setValue('');
+    if (!value.includes(tag)) onChange([tag, ...value]);
+    setInput('');
   };
 
   const removeHashtag = (tag: string) => {
-    pushHashtag(p => p.filter(t => t !== tag));
+    onChange(value.filter(t => t !== tag));
   };
+
   return (
     <InputComponent title="Hashtags" height={140.4}>
       <View style={{ flexDirection: 'column', gap: 8, width: '100%' }}>
@@ -54,17 +62,17 @@ const HashTagsInput = () => {
             gap: 8,
           }}
         >
-          {hashtags.map(hash => (
+          {value.map(hash => (
             <Pressable key={hash} onPress={() => removeHashtag(hash)}>
               <Text style={{ color: '#FFF', fontSize: 16 }}>{hash}</Text>
             </Pressable>
           ))}
         </View>
+
         <View
           style={{
             flexDirection: 'row',
             padding: 2,
-            flex: 1,
             width: '100%',
             alignItems: 'center',
             gap: 4,
@@ -76,13 +84,18 @@ const HashTagsInput = () => {
               backgroundColor: '#ffffff',
               flex: 1,
               borderRadius: 8,
+              paddingHorizontal: 10,
+              height: 40,
+              color: '#111',
             }}
             placeholder="Enter HashTag..."
-            value={value}
-            onChangeText={setValue}
-            numberOfLines={1}
-            keyboardType="default"
+            placeholderTextColor="#9AA0A6"
+            value={input}
+            onChangeText={setInput}
+            onSubmitEditing={addHashtag}
+            returnKeyType="done"
           />
+
           <Pressable
             style={{
               width: 40,

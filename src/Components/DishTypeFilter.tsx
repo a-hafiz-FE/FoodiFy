@@ -1,29 +1,26 @@
-import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text } from 'react-native';
 import CustomButton from './CustomButton';
+import { DishType } from '../app/StoreConstants';
 
-const DishOptions = [
-  'Breakfast',
-  'Lunch',
-  'Snack',
-  'Brunch',
-  'Dessert',
-  'Dinner',
-  'Appetizers',
+const dishTypeOptions: { label: string; value: DishType }[] = [
+  { label: 'Breakfast', value: 'breakfast' },
+  { label: 'Lunch', value: 'lunch' },
+  { label: 'Snack', value: 'snack' },
+  { label: 'Brunch', value: 'brunch' },
+  { label: 'Dessert', value: 'dessert' },
+  { label: 'Dinner', value: 'dinner' },
+  { label: 'Appetizers', value: 'appetizers' },
 ];
 
-type props = { clearSignal: number };
+type Props = {
+  value?: DishType[];                 // ✅ optional
+  onChange: (next: DishType[]) => void;
+};
 
-const DishTypeFilter = ({ clearSignal }: props) => {
-  const [selected, setSelected] = React.useState<string[]>([]);
-
-  React.useEffect(() => {
-    setSelected([]);
-  }, [clearSignal]);
-  const toggle = (label: string) => {
-    setSelected(prev =>
-      prev.includes(label) ? prev.filter(x => x !== label) : [...prev, label],
-    );
+const DishTypeFilter = ({ value = [], onChange }: Props) => {
+  const toggle = (v: DishType) => {
+    onChange(value.includes(v) ? value.filter(x => x !== v) : [...value, v]);
   };
 
   return (
@@ -33,7 +30,6 @@ const DishTypeFilter = ({ clearSignal }: props) => {
         backgroundColor: '#4058A0',
         marginTop: 8,
         borderRadius: 8,
-        flexDirection: 'column',
         justifyContent: 'space-between',
         paddingBottom: 20,
       }}
@@ -50,6 +46,7 @@ const DishTypeFilter = ({ clearSignal }: props) => {
       >
         Dish Type
       </Text>
+
       <View
         style={{
           flexWrap: 'wrap',
@@ -60,12 +57,12 @@ const DishTypeFilter = ({ clearSignal }: props) => {
           gap: 10,
         }}
       >
-        {DishOptions.map(label => (
+        {dishTypeOptions.map(opt => (
           <CustomButton
-            key={label}
-            text={label}
-            selected={selected.includes(label)}
-            onPress={() => toggle(label)}
+            key={opt.value}
+            text={opt.label}
+            selected={value.includes(opt.value)}
+            onPress={() => toggle(opt.value)}
           />
         ))}
       </View>

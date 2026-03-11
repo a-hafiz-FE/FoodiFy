@@ -1,46 +1,37 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text } from 'react-native';
 import CustomButton from './CustomButton';
+import { DietaryTarget } from '../app/StoreConstants';
 
-const DietaryOptions = [
-  'Vegetarian',
-  'High Fat',
-  'Low Fat',
-  'Lactose Free',
-  'Sugar Free',
-  'Gluten Free',
+const dietaryOptions: { label: string; value: DietaryTarget }[] = [
+  { label: 'Vegetarian', value: 'vegetarian' },
+  { label: 'High Fat', value: 'high_fat' },
+  { label: 'Low Fat', value: 'low_fat' },
+  { label: 'Lactose Free', value: 'lactose_free' },
+  { label: 'Sugar Free', value: 'sugar_free' },
+  { label: 'Gluten Free', value: 'gluten_free' },
 ];
 
-type props = { clearSignal: number };
+type Props = {
+  value?: DietaryTarget[];
+  onChange: (next: DietaryTarget[]) => void;
+};
 
-const DietaryTargetFilter = ({ clearSignal }: props) => {
-  const [selected, setSelected] = useState<string[]>([]);
+const DietaryTargetFilter = ({ value = [], onChange }: Props) => {
+  const toggle = (v: DietaryTarget) => {
+    const isOn = value.includes(v);
 
-  useEffect(() => {
-    setSelected([]);
-  }, [clearSignal]);
+    if (isOn) {
+      onChange(value.filter(x => x !== v));
+      return;
+    }
 
-  const toggle = (label: string) => {
-    setSelected(prev => {
-      const isOn = prev.includes(label);
+    // mutual exclusion rule: high_fat vs low_fat
+    const opposite =
+      v === 'low_fat' ? 'high_fat' : v === 'high_fat' ? 'low_fat' : null;
 
-      // toggle OFF
-      if (isOn) return prev.filter(x => x !== label);
-
-      // toggle ON with mutual-exclusion rule
-      const opposite =
-        label === 'Low Fat'
-          ? 'High Fat'
-          : label === 'High Fat'
-          ? 'Low Fat'
-          : null;
-
-      const withoutOpposite = opposite
-        ? prev.filter(x => x !== opposite)
-        : prev;
-
-      return [...withoutOpposite, label];
-    });
+    const next = opposite ? value.filter(x => x !== opposite) : value;
+    onChange([...next, v]);
   };
 
   return (
@@ -50,7 +41,6 @@ const DietaryTargetFilter = ({ clearSignal }: props) => {
         backgroundColor: '#4058A0',
         marginTop: 8,
         borderRadius: 8,
-        flexDirection: 'column',
         justifyContent: 'space-between',
         paddingBottom: 20,
       }}
@@ -67,6 +57,7 @@ const DietaryTargetFilter = ({ clearSignal }: props) => {
       >
         Suggested Dietary Target
       </Text>
+
       <View
         style={{
           flexWrap: 'wrap',
@@ -77,12 +68,12 @@ const DietaryTargetFilter = ({ clearSignal }: props) => {
           gap: 5,
         }}
       >
-        {DietaryOptions.map(label => (
+        {dietaryOptions.map(opt => (
           <CustomButton
-            key={label}
-            text={label}
-            selected={selected.includes(label)}
-            onPress={() => toggle(label)}
+            key={opt.value}
+            text={opt.label}
+            selected={value.includes(opt.value)}
+            onPress={() => toggle(opt.value)}
           />
         ))}
       </View>

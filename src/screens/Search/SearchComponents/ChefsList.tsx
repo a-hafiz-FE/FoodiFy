@@ -13,7 +13,7 @@ const ChefsList = () => {
       <FlatList
         data={chefs}
         renderItem={chef => (
-          <ChefCard name={chef.item.name} avatar={chef.item.avatarUrl} />
+          <ChefCard name={chef.item.displayName} avatar={chef.item.avatarUrl} />
         )}
         keyExtractor={chef => chef.id}
         ItemSeparatorComponent={() => <View style={{ height: 18 }} />}

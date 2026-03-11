@@ -6,6 +6,7 @@ export type DishType =
   | 'dessert'
   | 'dinner'
   | 'appetizers';
+
 export type DietaryTarget =
   | 'vegetarian'
   | 'high_fat'
@@ -13,6 +14,7 @@ export type DietaryTarget =
   | 'lactose_free'
   | 'sugar_free'
   | 'gluten_free';
+
 export type Difficulty = 'easy' | 'medium' | 'professional';
 
 export type Id = string;
@@ -28,6 +30,7 @@ export type Chef = {
   ratingCount: number;
 };
 export type Tag = { id: Id; label: string };
+
 export type Meal = {
   id: Id;
   chefId: Id;
@@ -39,7 +42,7 @@ export type Meal = {
   servings: number;
   cookTimeMinutes: number;
   difficulty: Difficulty;
-  dishType: DishType;
+  dishTypes: DishType[];
 
   dietaryTargets: DietaryTarget[];
   tagIds: string[];
@@ -59,25 +62,12 @@ export type MealDraft = {
   servings: number | null;
   cookTimeMinutes: number | null;
   difficulty: Difficulty | null;
-  dishType: DishType | null;
+  dishTypes: DishType[];
   dietaryTargets: DietaryTarget[];
   hashTags: string[];
   ingredients: string[];
   steps: { order: number; text: string }[];
 };
-
-// export interface MealDraft {
-//   imageLocalUri: string | null;
-//   mealName: string;
-//   servings: number | null;
-//   cookTimeMinutes: number | null;
-//   difficulty: Difficulty | null;
-//   dishType: DishType | null;
-//   dietaryTargets: DietaryTarget[];
-//   hashTags: string[];
-//   ingredients: string[];
-//   steps: { order: number; text: string }[];
-// };
 
 export const defaultDraft: MealDraft = {
   mealName: '',
@@ -87,12 +77,26 @@ export const defaultDraft: MealDraft = {
   cookTimeMinutes: null,
   difficulty: null,
 
-  dishType: null,
+  dishTypes: [],
   dietaryTargets: [],
   hashTags: [],
 
   ingredients: [],
   steps: [],
+};
+
+export type SearchFilters = {
+  cookTimeMinutes: number | null;
+  difficulty: Difficulty | null;
+  dishTypes: DishType[];
+  dietaryTargets: DietaryTarget[];
+};
+
+export const defaultSearchFilters: SearchFilters = {
+  cookTimeMinutes: null,
+  difficulty: null,
+  dishTypes: [],
+  dietaryTargets: [],
 };
 
 export const normalizeDietary = (v: any): DietaryTarget[] => {
@@ -121,7 +125,7 @@ export const toMeal = (docId: string, d: any): Meal => ({
   servings: Number(d.servings ?? 0),
   cookTimeMinutes: Number(d.cookTimeMinutes ?? 0),
   difficulty: (d.difficulty ?? 'easy') as Difficulty,
-  dishType: (d.dishType ?? 'dinner') as DishType,
+  dishTypes: Array.isArray(d.dishTypes) ? d.dishTypes : [], // ✅ safe
 
   dietaryTargets: normalizeDietary(d.dietaryTargets),
   tagIds: Array.isArray(d.tagIds) ? d.tagIds.map(String) : [],
@@ -183,14 +187,34 @@ export type DraftSlice = {
   submitDraft: () => Promise<void>;
 };
 
+export type SearchSlice = {
+  // ✅ search filters
+  searchFilters: SearchFilters;
+  setSearchFilters: (patch: Partial<SearchFilters>) => void;
+  clearSearchFilters: () => void;
+};
+
 export type Store = MealsSlice &
   ChefsSlice &
   TagsSlice &
-  DraftSlice & {
+  DraftSlice &
+  SearchSlice & {
     startListeners: () => () => void; // returns cleanup function
   };
 
 export const clamp = (n: number) => Math.min(5, Math.max(0, n));
 export const round1 = (n: number) => Math.round(n * 10) / 10;
 
-export const DEMO_CHEF_ID = 'demoChef';
+export const DEMO_CHEF_ID = 'nL8Yef29rsvRWg9IOUrB';
+
+// ✅ turn "#Low Fat" -> "low_fat"
+export const toTagId = (hash: string) =>
+  hash
+    .trim()
+    .replace(/^#/, '')
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/[^\p{L}\p{N}_]/gu, '');
+
+// ✅ optional: "#low_fat" as label
+export const toTagLabel = (tagId: string) => `#${tagId}`;

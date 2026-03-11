@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Platform,
   Pressable,
@@ -10,11 +10,11 @@ import {
 import InputComponent from './InputComponent';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DishTypeFilter from '../../../Components/DishTypeFilter';
-import DificultyFilter from '../../../Components/DificultyFilter';
+import DifficultyFilter from '../../../Components/DificultyFilter';
 import DietaryTargetFilter from '../../../Components/DietaryTargetFilter';
 import HashTagsInput from './HashTagsInput';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-// import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Difficulty, Store } from '../../../app/StoreConstants';
 
 const DificultyOptions = ['Easy', 'Meduim', 'Professional'];
 const DishOptions = [
@@ -27,26 +27,36 @@ const DishOptions = [
   'Appetizers',
 ];
 
-const RecipeInformation = () => {
-  // const [name, setName] = useState('');
-  const [serving, setServing] = useState(1);
-  const [selected, setSelected] = useState<string | null>(null);
+type Props = {
+  draft: Store['draft'];
+  setDraft: Store['setDraft'];
+  clearSignal: number;
+};
 
-  const decrease = () => {
-    setServing(p => {
-      return Math.max(1, p - 1);
-    });
-  };
+const RecipeInformation = ({ draft, setDraft, clearSignal }: Props) => {
+  const servings = draft.servings ?? 1;
 
-  const increase = () => {
-    setServing(p => {
-      return Math.min(10, p + 1);
-    });
-  };
+  const { hours, minutes } = useMemo(() => {
+    const total = draft.cookTimeMinutes ?? 0;
+    return {
+      hours: String(Math.floor(total / 60) || ''),
+      minutes: String(total % 60 || ''),
+    };
+  }, [draft.cookTimeMinutes]);
 
-  const toggle = (label: string) => {
-    setSelected(prev => (prev === label ? null : label));
+  const decrease = () => setDraft({ servings: Math.max(1, servings - 1) });
+  const increase = () => setDraft({ servings: Math.min(10, servings + 1) });
+
+  const setCookTime = (hText: string, mText: string) => {
+    const h = Math.max(0, parseInt(hText || '0', 10) || 0);
+    const m = Math.max(0, parseInt(mText || '0', 10) || 0);
+    setDraft({ cookTimeMinutes: h * 60 + m });
   };
+  const difficultyOptions: { label: string; value: Difficulty }[] = [
+    { label: 'Easy', value: 'easy' },
+    { label: 'Medium', value: 'medium' },
+    { label: 'Professional', value: 'professional' },
+  ];
 
   return (
     <KeyboardAwareScrollView
@@ -63,6 +73,8 @@ const RecipeInformation = () => {
       <View style={{ gap: 10 }}>
         <InputComponent title="Name" height={111}>
           <TextInput
+            value={draft.mealName}
+            onChangeText={mealName => setDraft({ mealName })}
             style={{
               height: 40,
               width: '100%',
@@ -72,9 +84,9 @@ const RecipeInformation = () => {
               paddingVertical: 13,
             }}
             placeholder="Name Your Recipe"
+            placeholderTextColor="#9AA0A6"
           />
         </InputComponent>
-
         <InputComponent title="Number Of Servings" height={110.4}>
           <View
             style={{
@@ -96,7 +108,7 @@ const RecipeInformation = () => {
               <Ionicons name="remove" size={24} color={'#4058A0'} />
             </Pressable>
             <Text style={{ color: '#FFF', fontSize: 24, marginHorizontal: 10 }}>
-              {serving}
+              {servings}
             </Text>
             <Pressable
               style={{
@@ -113,7 +125,6 @@ const RecipeInformation = () => {
             </Pressable>
           </View>
         </InputComponent>
-
         <InputComponent title="Cook Time" height={110.4}>
           <View
             style={{
@@ -136,8 +147,13 @@ const RecipeInformation = () => {
               }}
             >
               <TextInput
+                value={hours}
+                onChangeText={h => setCookTime(h, minutes)}
                 inputMode="numeric"
-                style={{ flex: 1, marginRight: 10 }}
+                keyboardType="number-pad"
+                style={{ flex: 1, marginRight: 10, color: '#111' }}
+                placeholder="0"
+                placeholderTextColor="#9AA0A6"
               />
               <Text style={{ color: '#000', position: 'absolute', right: 20 }}>
                 h
@@ -157,8 +173,13 @@ const RecipeInformation = () => {
               }}
             >
               <TextInput
+                value={minutes}
+                onChangeText={m => setCookTime(hours, m)}
                 inputMode="numeric"
-                style={{ flex: 1, marginRight: 10 }}
+                keyboardType="number-pad"
+                style={{ flex: 1, marginRight: 10, color: '#111' }}
+                placeholder="0"
+                placeholderTextColor="#9AA0A6"
               />
               <Text style={{ color: '#000', position: 'absolute', right: 20 }}>
                 m
@@ -167,13 +188,24 @@ const RecipeInformation = () => {
           </View>
         </InputComponent>
 
-        <DificultyFilter clearSignal={1} />
+        <DifficultyFilter
+          value={draft.difficulty}
+          onChange={v => setDraft({ difficulty: v })}
+        />
 
-        <DishTypeFilter clearSignal={1} />
-
-        <DietaryTargetFilter clearSignal={1} />
-
-        <HashTagsInput />
+        <DishTypeFilter
+          value={draft.dishTypes}
+          onChange={next => setDraft({ dishTypes: next })}
+        />
+        <DietaryTargetFilter
+          value={draft.dietaryTargets}
+          onChange={next => setDraft({ dietaryTargets: next })}
+        />
+        <HashTagsInput
+          value={draft.hashTags}
+          onChange={next => setDraft({ hashTags: next })}
+          clearSignal={clearSignal}
+        />
       </View>
     </KeyboardAwareScrollView>
   );

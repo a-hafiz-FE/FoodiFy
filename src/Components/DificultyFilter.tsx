@@ -1,21 +1,22 @@
-import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text } from 'react-native';
 import CustomButton from './CustomButton';
+import { Difficulty } from '../app/StoreConstants';
 
-const DificultyOptions = ['Easy', 'Meduim', 'Professional'];
+const difficultyOptions: { label: string; value: Difficulty }[] = [
+  { label: 'Easy', value: 'easy' },
+  { label: 'Medium', value: 'medium' },
+  { label: 'Professional', value: 'professional' },
+];
 
-type props = { clearSignal: number };
+type Props = {
+  value: Difficulty | null;
+  onChange: (next: Difficulty | null) => void;
+};
 
-const DificultyFilter = ({ clearSignal }: props) => {
-  const [selected, setSelected] = React.useState<string | null>(null);
+const DifficultyFilter = ({ value, onChange }: Props) => {
+  const toggle = (v: Difficulty) => onChange(value === v ? null : v);
 
-  React.useEffect(() => {
-    setSelected(null);
-  }, [clearSignal]);
-
-  const toggle = (label: string) => {
-    setSelected(prev => (prev === label ? null : label));
-  };
   return (
     <View
       style={{
@@ -38,8 +39,9 @@ const DificultyFilter = ({ clearSignal }: props) => {
           borderRadius: 5,
         }}
       >
-        Dificulty
+        Difficulty
       </Text>
+
       <View
         style={{
           paddingHorizontal: 10,
@@ -49,12 +51,12 @@ const DificultyFilter = ({ clearSignal }: props) => {
           gap: 10,
         }}
       >
-        {DificultyOptions.map(label => (
+        {difficultyOptions.map(opt => (
           <CustomButton
-            key={label}
-            text={label}
-            selected={selected === label}
-            onPress={() => toggle(label)}
+            key={opt.value}
+            text={opt.label}
+            selected={value === opt.value} // ✅ single-select compare
+            onPress={() => toggle(opt.value)}
           />
         ))}
       </View>
@@ -62,4 +64,4 @@ const DificultyFilter = ({ clearSignal }: props) => {
   );
 };
 
-export default DificultyFilter;
+export default DifficultyFilter;

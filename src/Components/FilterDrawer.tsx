@@ -1,19 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import type { DrawerContentComponentProps } from '@react-navigation/drawer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import CookTime from './CookTime';
-import DificultyFilter from './DificultyFilter';
-import DishTypeFilter from './DishTypeFilter';
-import DietaryTargetFilter from './DietaryTargetFilter';
 import { ScrollView } from 'react-native-gesture-handler';
 import { DrawerActions } from '@react-navigation/native';
+import CookTime from './CookTime';
+import DifficultyFilter from './DificultyFilter';
+import DishTypeFilter from './DishTypeFilter';
+import DietaryTargetFilter from './DietaryTargetFilter';
+import { useMealStore } from '../app/mealStore';
 
 const FilterDrawer = (props: DrawerContentComponentProps) => {
   const { navigation } = props;
-  const [clearSignal, setClearSignal] = React.useState(0);
 
-  const clearFilters = () => setClearSignal(n => n + 1);
+  const searchFilters = useMealStore(s => s.searchFilters);
+  const setSearchFilters = useMealStore(s => s.setSearchFilters);
+  const clearSearchFilters = useMealStore(s => s.clearSearchFilters);
+
+  const confirm = () => {
+    navigation.dispatch(DrawerActions.closeDrawer());
+  };
 
   return (
     <View
@@ -45,13 +51,25 @@ const FilterDrawer = (props: DrawerContentComponentProps) => {
           <Text style={{ fontSize: 20 }}>Filters</Text>
         </View>
 
-        <CookTime clearSignal={clearSignal} />
+        <CookTime
+          value={searchFilters.cookTimeMinutes}
+          onChange={v => setSearchFilters({ cookTimeMinutes: v })}
+        />
 
-        <DificultyFilter clearSignal={clearSignal} />
+        <DifficultyFilter
+          value={searchFilters.difficulty}
+          onChange={v => setSearchFilters({ difficulty: v })}
+        />
 
-        <DishTypeFilter clearSignal={clearSignal} />
+        <DishTypeFilter
+          value={searchFilters.dishTypes}
+          onChange={v => setSearchFilters({ dishTypes: v })}
+        />
 
-        <DietaryTargetFilter clearSignal={clearSignal} />
+        <DietaryTargetFilter
+          value={searchFilters.dietaryTargets}
+          onChange={v => setSearchFilters({ dietaryTargets: v })}
+        />
 
         <View style={{ marginTop: 33, flexDirection: 'row', gap: 10 }}>
           <Pressable
@@ -63,10 +81,11 @@ const FilterDrawer = (props: DrawerContentComponentProps) => {
               justifyContent: 'center',
               alignItems: 'center',
             }}
-            onPress={() => clearFilters()}
+            onPress={clearSearchFilters}
           >
             <Text>Clear All</Text>
           </Pressable>
+
           <Pressable
             style={{
               backgroundColor: '#000',
@@ -76,7 +95,7 @@ const FilterDrawer = (props: DrawerContentComponentProps) => {
               justifyContent: 'center',
               alignItems: 'center',
             }}
-            onPress={() => navigation.dispatch(DrawerActions.closeDrawer())}
+            onPress={confirm} // this line here (confirm filters)
           >
             <Text style={{ color: '#fff' }}>Confirm</Text>
           </Pressable>

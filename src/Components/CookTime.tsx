@@ -1,15 +1,14 @@
 import Slider from '@react-native-community/slider';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text } from 'react-native';
 
-type props = { clearSignal: number };
+type Props = {
+  value: number | null;
+  onChange: (v: number | null) => void;
+};
 
-const CookTime = ({ clearSignal }: props) => {
-  const [minutes, setMinutes] = useState(0);
-
-  useEffect(() => {
-    setMinutes(0);
-  }, [clearSignal]);
+const CookTime = ({ value, onChange }: Props) => {
+  const minutes = value ?? 0;
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
 
@@ -37,13 +36,14 @@ const CookTime = ({ clearSignal }: props) => {
       >
         Cook Time
       </Text>
+
       <View>
         <Slider
           minimumValue={0}
           maximumValue={120}
           step={1}
           value={minutes}
-          onValueChange={setMinutes}
+          onValueChange={(v) => onChange(v === 0 ? null : v)}
           minimumTrackTintColor="#DEE21B"
           maximumTrackTintColor="#ffffff"
           thumbTintColor="#DEE21B"
@@ -52,6 +52,13 @@ const CookTime = ({ clearSignal }: props) => {
         <Text style={{ color: '#fff', alignSelf: 'center' }}>
           {minutes} min ({hours}:{String(mins).padStart(2, '0')})
         </Text>
+
+        {/* Optional hint when filter not set */}
+        {value == null && (
+          <Text style={{ color: '#fff', alignSelf: 'center', fontSize: 12, opacity: 0.8 }}>
+            Not set
+          </Text>
+        )}
       </View>
     </View>
   );

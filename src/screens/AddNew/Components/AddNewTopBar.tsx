@@ -2,7 +2,12 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const AddNewTopBar = () => {
+type Props = {
+  onBack?: () => void;
+  onClearAll?: () => void;
+};
+
+const AddNewTopBar = ({ onBack, onClearAll }: Props) => {
   return (
     <View
       style={{
@@ -25,7 +30,7 @@ const AddNewTopBar = () => {
           justifyContent: 'space-between',
         }}
       >
-        <Pressable>
+        <Pressable onPress={onBack} hitSlop={10}>
           <Ionicons name={'chevron-back-outline'} size={24} color={'#FFF'} />
         </Pressable>
 
@@ -39,7 +44,7 @@ const AddNewTopBar = () => {
           New Recipe
         </Text>
 
-        <Pressable>
+        <Pressable onPress={onClearAll} hitSlop={10}>
           <Text style={{ color: '#FFF', fontSize: 14 }}>Clear All</Text>
         </Pressable>
       </View>

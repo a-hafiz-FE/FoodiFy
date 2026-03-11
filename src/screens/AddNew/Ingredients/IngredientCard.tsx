@@ -1,17 +1,23 @@
 import { Pressable, Text, View } from 'react-native';
+import { TextInput } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const IngredientCard = () => {
+type props = {
+  index: number;
+  value: string;
+  onRemove: () => void;
+};
+const IngredientCard = ({ index, value, onRemove }: props) => {
   return (
     <View
       style={{
         backgroundColor: '#FFFFFF',
-        width: '100%',
         padding: 4,
         borderRadius: 6,
         flexDirection: 'row',
         gap: 10,
-        flexWrap: 'nowrap',
+        minHeight: 40,
+        alignItems: 'center',
       }}
     >
       <View
@@ -22,27 +28,37 @@ const IngredientCard = () => {
           borderRadius: 4,
           alignItems: 'center',
           justifyContent: 'center',
+          position: 'absolute',
+          top: 0,
         }}
       >
         <Text
           style={{
             fontSize: 12,
-            fontWeight: 'semibold',
+            fontWeight: '600',
             color: '#FFFFFF',
           }}
         >
-          01
+          {index + 1}
         </Text>
       </View>
-      <Text style={{ fontSize: 16, width: 300 }}>2 cups all-purpose flour</Text>
+      <Text
+        style={{
+          fontSize: 16,
+          width: 280,
+          marginLeft: 30,
+        }}
+      >
+        {value}
+      </Text>
       <Pressable
+        onPress={onRemove}
         style={{
           height: 19,
           width: 19,
           borderRadius: 99,
           backgroundColor: '#ADADAD',
           alignSelf: 'flex-end',
-          // alignItems: 'center',
         }}
       >
         <Ionicons name="remove" size={20} color={'#FFFFFF'} />

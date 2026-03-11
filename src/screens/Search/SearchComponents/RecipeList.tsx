@@ -13,9 +13,9 @@ const RecipeList = () => {
         data={meals}
         renderItem={meal => (
           <CarouselCard
-            title={meal.item.title}
-            rating={meal.item.rating}
-            image={meal.item.image}
+            title={meal.item.mealName}
+            rating={meal.item.ratingAvg}
+            image={meal.item.mealImage}
           />
         )}
         keyExtractor={meal => meal.id}
