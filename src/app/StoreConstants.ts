@@ -101,13 +101,40 @@ export const defaultSearchFilters: SearchFilters = {
   dietaryTargets: [],
 };
 
-export const normalizeDietary = (v: any): DietaryTarget[] => {
+const VALID_DIETARY_TARGETS = new Set<DietaryTarget>([
+  'vegetarian',
+  'high_fat',
+  'low_fat',
+  'lactose_free',
+  'sugar_free',
+  'gluten_free',
+]);
+
+const toDietaryTarget = (x: unknown): DietaryTarget | null => {
+  const normalized = String(x).toLowerCase().replace(/\s+/g, '_');
+  return VALID_DIETARY_TARGETS.has(normalized as DietaryTarget)
+    ? (normalized as DietaryTarget)
+    : null;
+};
+
+/**
+ * Safely normalizes raw Firestore dietary target data into a validated
+ * `DietaryTarget[]`, filtering out any values not present in the union.
+ *
+ * Accepts either an array of values or a single string (legacy format).
+ * Unknown values are silently dropped rather than cast, so TypeScript's
+ * type guarantee on `DietaryTarget` is actually upheld at runtime.
+ *
+ * @param v - Raw value from a Firestore document's `dietaryTargets` field.
+ * @returns A validated array containing only known `DietaryTarget` values.
+ */
+export const normalizeDietary = (v: unknown): DietaryTarget[] => {
   if (Array.isArray(v))
-    return v.map(x =>
-      String(x).toLowerCase().replace(/\s+/g, '_'),
-    ) as DietaryTarget[];
-  if (typeof v === 'string' && v.trim())
-    return [v.toLowerCase().replace(/\s+/g, '_')] as DietaryTarget[];
+    return v.map(toDietaryTarget).filter(Boolean) as DietaryTarget[];
+  if (typeof v === 'string' && v.trim()) {
+    const result = toDietaryTarget(v);
+    return result ? [result] : [];
+  }
   return [];
 };
 
@@ -232,17 +259,43 @@ export type Store = MealsSlice &
     ensureTagsExist: (hashTags: string[]) => Promise<string[]>;
   };
 
+// ─────────────────────────────────────────────
+// RATING UTILITIES
+// Used when computing or displaying aggregated
+// rating values. Kept here as they operate on
+// Meal data shape (ratingAvg range: 0–5).
+// ─────────────────────────────────────────────
+
+/** Clamps a rating value to the valid 0–5 range. */
 export const clamp = (n: number) => Math.min(5, Math.max(0, n));
+
+/** Rounds a rating to one decimal place (e.g. 4.666 → 4.7). */
 export const round1 = (n: number) => Math.round(n * 10) / 10;
 
 export const DEMO_CHEF_ID = 'nL8Yef29rsvRWg9IOUrB';
 
-export const toTagId = (hash: string) =>
-  hash
+/**
+ * Converts a raw hashtag string into a normalized Firestore document ID.
+ *
+ * Rules:
+ *  - Strips leading `#`, lowercases, replaces spaces with `_`.
+ *  - Removes any characters that aren't unicode letters, numbers, or `_`.
+ *  - Returns `null` if the result is empty (e.g. input was "###" or "!@#"),
+ *    so callers can filter invalid tags explicitly rather than getting a
+ *    silent empty string that would create a Firestore doc at path `tags/`.
+ *
+ * @example
+ * toTagId('#Low Fat') // → 'low_fat'
+ * toTagId('###')      // → null
+ */
+export const toTagId = (hash: string): string | null => {
+  const id = hash
     .trim()
-    .replace(/^#/, '')
+    .replace(/^#+/, '')
     .toLowerCase()
     .replace(/\s+/g, '_')
     .replace(/[^\p{L}\p{N}_]/gu, '');
+  return id.length > 0 ? id : null;
+};
 
 export const toTagLabel = (tagId: string) => `#${tagId}`;

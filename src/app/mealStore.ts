@@ -134,7 +134,8 @@ export const useMealStore = create<
        * // tagIds => ['vegan', 'quick']
        */
       ensureTagsExist: async (hashTags: string[]) => {
-        const rawIds = hashTags.map(toTagId).filter(Boolean);
+        // toTagId now returns null for invalid tags — filter those out explicitly
+        const rawIds = hashTags.map(toTagId).filter((id): id is string => id !== null);
 
         // Deduplicate so we don't write the same tag twice in one batch
         const tagIds = Array.from(new Set(rawIds));
@@ -203,7 +204,7 @@ export const useMealStore = create<
           set({ submitStatus: 'error', submitError: 'Meal name is required' });
           return;
         }
-        if (!draft.cookTimeMinutes) {
+        if (!draft.cookTimeMinutes || draft.cookTimeMinutes < 1) {
           set({ submitStatus: 'error', submitError: 'Cook time is required' });
           return;
         }
@@ -223,10 +224,34 @@ export const useMealStore = create<
           return;
         }
 
+        // ── Image guard ─────────────────────────────
+        // imageLocalUri is a device-local path — meaningless to other users.
+        // It must be uploaded to remote storage before submitDraft is called,
+        // and the resulting remote URL should replace imageLocalUri in the draft.
+        // We hard-fail here so this contract is never silently violated.
+        if (
+          draft.imageLocalUri &&
+          (draft.imageLocalUri.startsWith('file://') ||
+            draft.imageLocalUri.startsWith('/var/') ||
+            draft.imageLocalUri.startsWith('/data/'))
+        ) {
+          set({
+            submitStatus: 'error',
+            submitError:
+              'Image must be uploaded before submitting. Please wait for the upload to complete.',
+          });
+          return;
+        }
+
         set({ submitStatus: 'loading', submitError: undefined });
 
         try {
           const db = getFirestore();
+
+          // ── Chef ID ──────────────────────────────
+          // TODO: replace with auth slice: get().currentUser?.id ?? DEMO_CHEF_ID
+          // DEMO_CHEF_ID is a temporary fallback for pre-auth development only.
+          const chefId = DEMO_CHEF_ID;
 
           // Upsert tags first so tagIds are valid references
           const tagIds = await get().ensureTagsExist(draft.hashTags);
@@ -244,9 +269,9 @@ export const useMealStore = create<
             .filter(Boolean);
 
           await addDoc(collection(db, 'meals'), {
-            chefId: DEMO_CHEF_ID,
+            chefId, // ✅ derived above — swap for auth when ready
             mealName: draft.mealName.trim(),
-            mealImage: draft.imageLocalUri ?? '',
+            mealImage: draft.imageLocalUri ?? '', // ✅ safe: local URIs blocked by guard above
             description: '',
             servings: draft.servings ?? 1,
             cookTimeMinutes: draft.cookTimeMinutes,
@@ -502,7 +527,8 @@ export const useMealStore = create<
       startListeners: () => {
         const { listenersStarted } = get();
         if (listenersStarted) {
-          return get().stopListeners;
+          // Already running — return the same cleanup shape as the normal path
+          return () => get().stopListeners();
         }
 
         const mealsUnsub = get().listenMeals();
