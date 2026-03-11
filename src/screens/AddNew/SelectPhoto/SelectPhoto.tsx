@@ -5,10 +5,16 @@ import ImageCropPicker from 'react-native-image-crop-picker';
 type Props = {
   imageUri: string | null;
   onChangeImage: (uri: string | null) => void;
-  onCrop: () => void;
+  onCrop: () => Promise<void>;
+  uploadProgress: number | null; // 0–1 while uploading, null when idle
 };
 
-const SelectPhoto = ({ imageUri, onChangeImage, onCrop }: Props) => {
+const SelectPhoto = ({
+  imageUri,
+  onChangeImage,
+  onCrop,
+  uploadProgress,
+}: Props) => {
   const pickImage = async () => {
     try {
       const res = await ImageCropPicker.openPicker({ mediaType: 'photo' });
@@ -105,6 +111,20 @@ const SelectPhoto = ({ imageUri, onChangeImage, onCrop }: Props) => {
           <Text style={{ fontSize: 16, fontWeight: 'medium' }}>Remove</Text>
         </Pressable>
       </View>
+      {uploadProgress !== null && (
+        <View
+          style={{ height: 4, backgroundColor: '#e0e0e0', borderRadius: 2 }}
+        >
+          <View
+            style={{
+              height: 4,
+              width: `${Math.round(uploadProgress * 100)}%`,
+              backgroundColor: '#DEE21B',
+              borderRadius: 2,
+            }}
+          />
+        </View>
+      )}
     </View>
   );
 };
