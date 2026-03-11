@@ -224,25 +224,6 @@ export const useMealStore = create<
           return;
         }
 
-        // ── Image guard ─────────────────────────────
-        // imageLocalUri is a device-local path — meaningless to other users.
-        // It must be uploaded to remote storage before submitDraft is called,
-        // and the resulting remote URL should replace imageLocalUri in the draft.
-        // We hard-fail here so this contract is never silently violated.
-        if (
-          draft.imageLocalUri &&
-          (draft.imageLocalUri.startsWith('file://') ||
-            draft.imageLocalUri.startsWith('/var/') ||
-            draft.imageLocalUri.startsWith('/data/'))
-        ) {
-          set({
-            submitStatus: 'error',
-            submitError:
-              'Image must be uploaded before submitting. Please wait for the upload to complete.',
-          });
-          return;
-        }
-
         set({ submitStatus: 'loading', submitError: undefined });
 
         try {

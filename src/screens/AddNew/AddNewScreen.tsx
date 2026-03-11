@@ -1,7 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useRef, useState } from 'react';
 import { Alert, Text, View } from 'react-native';
-import storage, { FirebaseStorageTypes } from '@react-native-firebase/storage';
 
 import SelectPhoto from './SelectPhoto/SelectPhoto';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -28,11 +27,6 @@ const AddNewScreen = () => {
   const [step, setStep] = useState(1);
   const totalSteps = 4;
 
-  // ── Upload progress ────────────────────────────────────────────────────────
-  // null  = no upload in progress
-  // 0–1   = uploading (shown as progress bar in SelectPhoto)
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-
   const titles = [
     'Select Photo',
     'Recipe Information',
@@ -45,36 +39,11 @@ const AddNewScreen = () => {
   // Uploads to Firebase Storage while the user fills out the remaining steps,
   // then replaces the local device URI with the remote download URL in the draft.
   // By the time the user reaches step 4 and taps Finish, the upload is already done.
+  // ── Background upload ──────────────────────────────────────────────────────
+  // TODO: replace with Firebase Storage upload once bucket is set up
+  // Using local URI for now since this is a training app
   const uploadImageInBackground = async (localUri: string) => {
-    try {
-      const filename = `meals/${Date.now()}.jpg`;
-      const ref = storage().ref(filename);
-      const task = ref.putFile(localUri);
-
-      // Track progress so SelectPhoto can show a progress bar
-      task.on(
-        'state_changed',
-        (snapshot: FirebaseStorageTypes.TaskSnapshot) => {
-          const progress = snapshot.bytesTransferred / snapshot.totalBytes;
-          setUploadProgress(progress);
-        },
-      );
-
-      await task;
-
-      const remoteUrl = await ref.getDownloadURL();
-
-      // ✅ Replace local path with the remote URL — submitDraft will save this
-      setDraft({ imageLocalUri: remoteUrl });
-      setUploadProgress(null);
-    } catch (e) {
-      setUploadProgress(null);
-      console.log('Background upload failed', e);
-      Alert.alert(
-        'Upload Failed',
-        'Could not upload the image. Please try again.',
-      );
-    }
+    setDraft({ imageLocalUri: localUri });
   };
 
   // ── Image picker ───────────────────────────────────────────────────────────
@@ -94,21 +63,21 @@ const AddNewScreen = () => {
 
   // ── Image crop ─────────────────────────────────────────────────────────────
   const handleCrop = async () => {
-    if (!imageUri) return;
+    if (!imageUri) return; // ✅ already guards null, so imageUri is string below
 
     try {
       const cropped = await ImagePicker.openCropper({
-        path: imageUri,
+        path: imageUri, // ✅ safe — null already excluded above
         mediaType: 'photo',
         width: 800,
         height: 800,
         cropping: true,
         cropperCircleOverlay: false,
-        compressImageQuality: 0.5, // ✅ compress on crop too
+        compressImageQuality: 0.5,
       });
 
       setDraft({ imageLocalUri: cropped.path });
-      uploadImageInBackground(cropped.path); // ✅ re-upload the cropped version
+      uploadImageInBackground(cropped.path); // ✅ cropped.path is always string
     } catch (e) {
       console.log(e);
     }
@@ -136,19 +105,6 @@ const AddNewScreen = () => {
       return;
     }
 
-    // ── Guard: block submit if upload is still in progress ──────────────────
-    // The background upload started on image pick, but on slow connections
-    // it may not have finished by the time the user reaches step 4.
-    if (uploadProgress !== null) {
-      Alert.alert(
-        'Upload In Progress',
-        `Your image is still uploading (${Math.round(
-          uploadProgress * 100,
-        )}%). Please wait a moment and try again.`,
-      );
-      return;
-    }
-
     await submitDraft();
 
     const { submitStatus: status, submitError: error } =
@@ -157,7 +113,7 @@ const AddNewScreen = () => {
     if (status === 'error' && error) {
       Alert.alert('Submission Error', error);
       setDraft({}); // ✅ resets submitStatus → 'idle' and clears submitError
-      return; //    so ControlButtons has nothing to render inline
+      return;       //    so ControlButtons has nothing to render inline
     }
 
     // Reset to step 1 on success
@@ -168,7 +124,6 @@ const AddNewScreen = () => {
   const handleClearAll = () => {
     resetDraft();
     setStep(1);
-    setUploadProgress(null);
     setClearSignal(p => p + 1);
   };
 
@@ -177,19 +132,13 @@ const AddNewScreen = () => {
     switch (s) {
       case 1:
         if (!draft.imageLocalUri) return 'Please pick a photo';
-        // Don't allow advancing while upload is still running
-        if (uploadProgress !== null)
-          return `Image is still uploading (${Math.round(
-            uploadProgress * 100,
-          )}%). Please wait.`;
         return null;
 
       case 2:
         if (!draft.mealName.trim()) return 'Meal name is required';
         if (!draft.servings) return 'Servings are required';
         if (!draft.cookTimeMinutes) return 'Cook time is required';
-        if (draft.cookTimeMinutes > 120)
-          return 'Cook time must be under two hours';
+        if (draft.cookTimeMinutes > 120) return 'Cook time must be under two hours';
         if (!draft.difficulty) return 'Difficulty is required';
         if (!draft.dishTypes?.length) return 'Pick at least one dish type';
         if (!draft.dietaryTargets?.length)
@@ -225,7 +174,6 @@ const AddNewScreen = () => {
       return () => {
         openedOnce.current = false;
         setStep(1);
-        setUploadProgress(null);
         resetDraft();
       };
     }, []),
@@ -294,10 +242,9 @@ const AddNewScreen = () => {
             imageUri={imageUri}
             onChangeImage={uri => {
               setDraft({ imageLocalUri: uri });
-              if (uri) uploadImageInBackground(uri); // ✅ guard against null
+              if (uri) uploadImageInBackground(uri);
             }}
             onCrop={handleCrop}
-            uploadProgress={uploadProgress} // ✅ pass progress so SelectPhoto can show a bar
           />
         )}
         {step === 2 && (
