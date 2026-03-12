@@ -3,109 +3,10 @@ import { View, Text, Pressable, Animated, Dimensions } from 'react-native';
 import { styles } from './styles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-// ─────────────────────────────────────────────
-// Icon map
-// ─────────────────────────────────────────────
-const ICONS: Record<string, [string, string]> = {
-  Home: ['home', 'home-outline'],
-  Search: ['search', 'search-outline'],
-  'Add New': ['add-circle', 'add-circle-outline'],
-  Save: ['bookmark', 'bookmark-outline'],
-  Profile: ['person', 'person-outline'],
-};
-
-const getIconName = (routeName: string, isFocused: boolean) => {
-  const pair = ICONS[routeName] ?? ['ellipse-outline', 'ellipse-outline'];
-  return isFocused ? pair[0] : pair[1];
-};
-
-// ─────────────────────────────────────────────
-// Single tab item — extracted so hooks are
-// called at the top level of a component,
-// not inside a .map() loop (rules of hooks)
-// ─────────────────────────────────────────────
-type TabItemProps = {
-  routeName: string;
-  routeKey: string;
-  isFocused: boolean;
-  onPress: () => void;
-  tabWidth: number;
-};
-
-const TabItem = ({
-  routeName,
-  routeKey,
-  isFocused,
-  onPress,
-  tabWidth,
-}: TabItemProps) => {
-  const scale = useRef(new Animated.Value(isFocused ? 1.1 : 1)).current;
-  const lift = useRef(new Animated.Value(isFocused ? -6 : 0)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.spring(scale, {
-        toValue: isFocused ? 1.1 : 1,
-        useNativeDriver: true,
-        speed: 18,
-        bounciness: 8,
-      }),
-      Animated.spring(lift, {
-        toValue: isFocused ? -6 : 0,
-        useNativeDriver: true,
-        speed: 18,
-        bounciness: 8,
-      }),
-    ]).start();
-  }, [isFocused]);
-
-  return (
-    <Pressable
-      key={routeKey}
-      style={[styles.TabBarItem, { width: tabWidth }]}
-      onPress={onPress}
-    >
-      <Animated.View
-        style={{
-          alignItems: 'center',
-          transform: [{ scale }, { translateY: lift }],
-        }}
-      >
-        <Ionicons
-          name={getIconName(routeName, isFocused)}
-          size={22}
-          color="#cbcbcb"
-          style={{ bottom: isFocused ? 25 : 0 }}
-        />
-        <Text
-          style={{
-            color: '#cbcbcb',
-            fontWeight: isFocused ? 'bold' : 'normal',
-            bottom: isFocused ? 2 : 0,
-          }}
-        >
-          {routeName}
-        </Text>
-      </Animated.View>
-    </Pressable>
-  );
-};
-
-// ─────────────────────────────────────────────
-// Tab bar
-// ─────────────────────────────────────────────
-const AnimatedTabBar = ({ state, navigation }: any) => {
-  const screenWidth = Dimensions.get('screen').width;
-  const TAB_BAR_PADDING = 0;
-  const tabCount = state.routes.length;
-
-  // ✅ Each tab gets exactly equal width
-  const tabWidth = (screenWidth - TAB_BAR_PADDING) / tabCount;
-
-  // ✅ Indicator slides to the center of the focused tab
-  const indicatorX = useRef(
-    new Animated.Value(state.index * tabWidth),
-  ).current;
+const AnimatedTabrBar = ({ state, navigation }: any) => {
+  const screenwidth = Dimensions.get('screen').width;
+  const tabWidth = (screenwidth - 50) / state.routes.length; // we’ll improve this later
+  const indicatorX = useRef(new Animated.Value(state.index * tabWidth)).current;
 
   useEffect(() => {
     Animated.spring(indicatorX, {
@@ -116,75 +17,129 @@ const AnimatedTabBar = ({ state, navigation }: any) => {
     }).start();
   }, [state.index, tabWidth]);
 
-  // ✅ Center the indicator image within the tab
-  // The image is 110px wide — offset by half the difference to center it
-  const INDICATOR_WIDTH = 110;
-  const indicatorOffset = (tabWidth - INDICATOR_WIDTH) / 2 + TAB_BAR_PADDING / 2;
-
-  // ✅ Center the orange circle (45px) within the tab
-  const CIRCLE_SIZE = 45;
-  const circleOffset = (tabWidth - CIRCLE_SIZE) / 2 + TAB_BAR_PADDING / 2;
-
   return (
     <View style={styles.TabBarContainer}>
-      {/* Sliding background ellipse */}
       <Animated.Image
         style={{
           position: 'absolute',
           height: 35,
-          width: INDICATOR_WIDTH,
+          width: 110,
           objectFit: 'fill',
-          transform: [
-            {
-              translateX: indicatorX.interpolate({
-                inputRange: [0, (tabCount - 1) * tabWidth],
-                outputRange: [
-                  indicatorOffset,
-                  indicatorOffset + (tabCount - 1) * tabWidth,
-                ],
-              }),
-            },
-          ],
+          transform: [{ translateX: indicatorX }],
+          marginHorizontal: 7,
         }}
         source={require('../../assets/Ellipse7.png')}
       />
-
-      {/* Sliding orange circle */}
       <Animated.View
         style={{
           position: 'absolute',
+          left: 0,
           bottom: 67,
-          height: CIRCLE_SIZE,
-          width: CIRCLE_SIZE,
+          height: 45,
+          width: 45,
           borderRadius: 999,
           backgroundColor: 'rgb(255, 100, 57)',
-          transform: [
-            {
-              translateX: indicatorX.interpolate({
-                inputRange: [0, (tabCount - 1) * tabWidth],
-                outputRange: [
-                  circleOffset,
-                  circleOffset + (tabCount - 1) * tabWidth,
-                ],
-              }),
-            },
-          ],
+          transform: [{ translateX: indicatorX }],
+          marginHorizontal: 39,
         }}
       />
+      {state.routes.map((route: any, index: number) => {
+        const isFocused = state.index === index;
+        // const icon =
+        //   route.name === 'Home'
+        //     ? isFocused
+        //       ? 'home'
+        //       : 'home-outline'
+        //     : route.name === 'Search'
+        //     ? isFocused
+        //       ? 'search'
+        //       : 'search-outline'
+        //     : route.name === 'Add New'
+        //     ? isFocused
+        //       ? 'add-circle'
+        //       : 'add-circle-outline'
+        //     : route.name === 'Save'
+        //     ? isFocused
+        //       ? 'bookmark'
+        //       : 'bookmark-outline'
+        //     : route.name === 'Profile'
+        //     ? isFocused
+        //       ? 'person'
+        //       : 'person-outline'
+        //     : 'ellipse-outline';
 
-      {/* Tab items */}
-      {state.routes.map((route: any, index: number) => (
-        <TabItem
-          key={route.key}
-          routeKey={route.key}
-          routeName={route.name}
-          isFocused={state.index === index}
-          tabWidth={tabWidth}
-          onPress={() => navigation.navigate(route.name)}
-        />
-      ))}
+        // is this the right way ?
+        const icons: any = {
+          Home: ['home', 'home-outline'],
+          Search: ['search', 'search-outline'],
+          'Add New': ['add-circle', 'add-circle-outline'],
+          Save: ['bookmark', 'bookmark-outline'],
+          Profile: ['person', 'person-outline'],
+        };
+
+        const getIconName = (routeName: any, isFocused: boolean) => {
+          const pair = icons[routeName] ?? [
+            'ellipse-outline',
+            'ellipse-outline',
+          ];
+          return isFocused ? pair[0] : pair[1];
+        };
+
+        const icon = getIconName(route.name, isFocused);
+
+        const scale = useRef(new Animated.Value(isFocused ? 1.1 : 1)).current;
+        const lift = useRef(new Animated.Value(isFocused ? -6 : 0)).current;
+
+        useEffect(() => {
+          Animated.parallel([
+            Animated.spring(scale, {
+              toValue: isFocused ? 1.1 : 1,
+              useNativeDriver: true,
+              speed: 18,
+              bounciness: 8,
+            }),
+            Animated.spring(lift, {
+              toValue: isFocused ? -6 : 0,
+              useNativeDriver: true,
+              speed: 18,
+              bounciness: 8,
+            }),
+          ]).start();
+        }, [isFocused]);
+
+        return (
+          <Pressable
+            key={route.key}
+            style={styles.TabBarItem}
+            onPress={() => navigation.navigate(route.name)}
+          >
+            <Animated.View
+              style={{
+                alignItems: 'center',
+                transform: [{ scale }, { translateY: lift }],
+              }}
+            >
+              <Ionicons
+                name={icon}
+                size={22}
+                color="#cbcbcb"
+                style={{ bottom: isFocused ? 25 : 0 }}
+              />
+              <Text
+                style={{
+                  color: '#cbcbcb',
+                  fontWeight: isFocused ? 'bold' : 'normal',
+                  bottom: isFocused ? 2 : 0,
+                }}
+              >
+                {route.name}
+              </Text>
+            </Animated.View>
+          </Pressable>
+        );
+      })}
     </View>
   );
 };
 
-export default AnimatedTabBar;
+export default AnimatedTabrBar;
