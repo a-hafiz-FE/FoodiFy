@@ -1,17 +1,25 @@
 import React from 'react';
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, Pressable } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-type props = { title: string; rating: number; image: string };
-const CarouselCard = ({ title, rating, image }: props) => {
+type Props = {
+  title: string;
+  rating: number;
+  image: string;
+  onPress: () => void; // ✅ parent handles navigation
+};
+
+const CarouselCard = ({ title, rating, image, onPress }: Props) => {
   return (
-    <View
-      style={{
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({
         height: 199,
         width: 156,
         borderRadius: 8,
         marginHorizontal: 8,
-      }}
+        opacity: pressed ? 0.85 : 1,
+      })}
     >
       <Image
         source={{ uri: image }}
@@ -53,7 +61,7 @@ const CarouselCard = ({ title, rating, image }: props) => {
       >
         {title}
       </Text>
-    </View>
+    </Pressable>
   );
 };
 

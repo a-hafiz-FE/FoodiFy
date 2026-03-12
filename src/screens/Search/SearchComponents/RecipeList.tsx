@@ -3,22 +3,29 @@ import { View, FlatList } from 'react-native';
 import { styles } from '../styles';
 import CarouselCard from '../../../Components/CarouselCard';
 import { useMealStore } from '../../../app/mealStore';
+import { useAppNavigation } from '../../../navigation/useAppNavigation';
 
 const RecipeList = () => {
+  const navigation = useAppNavigation();
+
   const mealsArray = useMealStore(s => s.mealsArray);
   const meals = useMemo(() => mealsArray(), [mealsArray]);
+
   return (
     <View style={styles.RecipeListStyle}>
       <FlatList
         data={meals}
-        renderItem={meal => (
+        keyExtractor={meal => meal.id}
+        renderItem={({ item }) => (
           <CarouselCard
-            title={meal.item.mealName}
-            rating={meal.item.ratingAvg}
-            image={meal.item.mealImage}
+            title={item.mealName}
+            rating={item.ratingAvg}
+            image={item.mealImage}
+            onPress={
+              () => navigation.navigate('RecipeScreen', { mealId: item.id }) // ✅ string, not string | undefined
+            }
           />
         )}
-        keyExtractor={meal => meal.id}
         numColumns={2}
         ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
         showsVerticalScrollIndicator={false}

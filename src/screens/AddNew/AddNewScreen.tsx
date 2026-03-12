@@ -84,10 +84,6 @@ const AddNewScreen = () => {
   };
 
   // ── Navigation ─────────────────────────────────────────────────────────────
-  const handleNext = () => {
-    setStep(p => Math.min(p + 1, totalSteps));
-  };
-
   const handelPrev = () => {
     setStep(p => Math.max(p - 1, 1));
   };

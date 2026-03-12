@@ -2,7 +2,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import React from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 
-type props = {
+type Props = {
   recipeRating: number;
   time: number;
   difficulty: string;
@@ -12,7 +12,9 @@ type props = {
   chefImage: string;
   chefRating: number;
   recipeDesc: string;
+  onPress: () => void; // ✅ parent handles navigation
 };
+
 const RecipeCard = ({
   recipeRating,
   time,
@@ -23,10 +25,12 @@ const RecipeCard = ({
   chefImage,
   chefRating,
   recipeDesc,
-}: props) => {
+  onPress,
+}: Props) => {
   return (
-    <View
-      style={{
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({
         backgroundColor: '#ffffff',
         height: 187,
         width: '100%',
@@ -38,7 +42,8 @@ const RecipeCard = ({
         padding: 4,
         flexDirection: 'row',
         gap: 16,
-      }}
+        opacity: pressed ? 0.85 : 1,
+      })}
     >
       <View
         style={{
@@ -49,7 +54,7 @@ const RecipeCard = ({
         }}
       >
         <Image
-          source={{ uri: `${recipeImage}` }}
+          source={{ uri: recipeImage }}
           style={{
             height: 175,
             width: 138,
@@ -105,7 +110,7 @@ const RecipeCard = ({
               width: 37,
               borderRadius: 99,
             }}
-            source={{ uri: `${chefImage}` }}
+            source={{ uri: chefImage }}
           />
           <View style={{ gap: 3, flexDirection: 'column' }}>
             <Text
@@ -159,7 +164,7 @@ const RecipeCard = ({
       >
         <Ionicons name="send-outline" size={22} color="#FFD9CD" />
       </Pressable>
-    </View>
+    </Pressable>
   );
 };
 

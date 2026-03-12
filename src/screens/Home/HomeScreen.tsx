@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, ScrollView, FlatList } from 'react-native';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { styles } from './styles';
 
 import HomeTopBar from './HomeComponents/HomeTopBar';
@@ -8,12 +9,12 @@ import RecipeCard from '../../Components/RecipeCard';
 import { useMealStore } from '../../app/mealStore';
 
 const HomeScreen = () => {
-  // 1) get ids + maps from store
+  const navigation = useAppNavigation();
+
   const mealsIds = useMealStore(s => s.mealsIds);
   const mealsById = useMealStore(s => s.mealsById);
   const getMealCard = useMealStore(s => s.getMealCard);
 
-  // 2) Popular Recipes (first 5)
   const popularMeals = useMemo(() => {
     return mealsIds
       .slice(0, 5)
@@ -21,22 +22,18 @@ const HomeScreen = () => {
       .filter(Boolean);
   }, [mealsIds, mealsById]);
 
-  // 3) Latest Recipes cards (first 3 with chef+tags)
   const latestCards = useMemo(() => {
     return mealsIds
       .slice(0, 3)
       .map(id => getMealCard(id))
-      .filter(Boolean);
+      .filter((card): card is NonNullable<typeof card> => card != null);
   }, [mealsIds, getMealCard]);
 
   return (
     <View style={styles.container}>
-      {/* Top Bar */}
       <HomeTopBar />
-      {/* Main Screen */}
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
-          {/* Scroll View */}
           <View
             style={{
               height: 285,
@@ -51,11 +48,15 @@ const HomeScreen = () => {
               horizontal={true}
               showsHorizontalScrollIndicator={false}
               data={popularMeals}
+              keyExtractor={item => item.id}
               renderItem={({ item }) => (
                 <CarouselCard
                   title={item.mealName}
                   rating={item.ratingAvg}
                   image={item.mealImage}
+                  onPress={() =>
+                    navigation.navigate('RecipeScreen', { mealId: item.id })
+                  }
                 />
               )}
             />
@@ -70,26 +71,24 @@ const HomeScreen = () => {
               paddingHorizontal: 20,
             }}
           >
-            <Text
-              style={{
-                fontSize: 32,
-                marginVertical: 10,
-              }}
-            >
+            <Text style={{ fontSize: 32, marginVertical: 10 }}>
               The Latest Recipes
             </Text>
             {latestCards.map(item => (
               <RecipeCard
-                key={item?.id}
-                recipeRating={item?.ratingAvg ?? 0}
-                time={item?.cookTimeMinutes ?? 0}
-                difficulty={item?.difficulty ?? ''}
-                recipeImage={item?.mealImage ?? ''}
-                recipeName={item?.mealName ?? ''}
-                chefName={item?.chef?.displayName ?? ''}
-                chefImage={item?.chef?.avatarUrl ?? ''}
-                chefRating={item?.chef?.ratingAvg ?? 0}
-                recipeDesc={item?.description ?? ''}
+                key={item.id}
+                recipeRating={item.ratingAvg}
+                time={item.cookTimeMinutes}
+                difficulty={item.difficulty}
+                recipeImage={item.mealImage}
+                recipeName={item.mealName}
+                chefName={item.chef?.displayName ?? ''} // chef is still optional
+                chefImage={item.chef?.avatarUrl ?? ''} // chef is still optional
+                chefRating={item.chef?.ratingAvg ?? 0} // chef is still optional
+                recipeDesc={item.description}
+                onPress={() =>
+                  navigation.navigate('RecipeScreen', { mealId: item.id })
+                }
               />
             ))}
           </View>

@@ -9,7 +9,6 @@ import { StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 
-import RootNavigation from './src/navigation/RootNavigation';
 import { useMealStore } from './src/app/mealStore';
 
 import { getApp } from '@react-native-firebase/app';
@@ -20,6 +19,7 @@ import {
   limit,
   getDocs,
 } from '@react-native-firebase/firestore';
+import AppNavigator from './src/navigation/AppNavigator';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -57,7 +57,7 @@ function App() {
     <NavigationContainer>
       <SafeAreaProvider>
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        <RootNavigation />
+        <AppNavigator />
       </SafeAreaProvider>
     </NavigationContainer>
   );
