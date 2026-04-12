@@ -10,54 +10,31 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 
 import { useMealStore } from './src/app/mealStore';
+import { useOnboardingStore } from './src/app/onboardingStore';
 
-import { getApp } from '@react-native-firebase/app';
-import {
-  getFirestore,
-  collection,
-  query,
-  limit,
-  getDocs,
-} from '@react-native-firebase/firestore';
 import AppNavigator from './src/navigation/AppNavigator';
+import OnboardingNavigator from './src/navigation/OnboardingNavigator';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
-  const opts = getApp().options;
-
-  console.log('🔥 projectId:', opts.projectId);
-  console.log('🔥 appId:', opts.appId);
-  console.log('🔥 storageBucket:', opts.storageBucket);
+  const isAuthenticated = useOnboardingStore(s => s.isAuthenticated);
+  const currentUser = useOnboardingStore(s => s.currentUser);
 
   useEffect(() => {
-    console.log('▶️ starting listeners');
+    if (!isAuthenticated) return;
     const stop = useMealStore.getState().startListeners();
-    return () => {
-      console.log('⏹️ stopping listeners');
-      stop();
-    };
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const db = getFirestore();
-        const q = query(collection(db, 'meals'), limit(1));
-        const snap = await getDocs(q);
-
-        console.log('🧪 meals get() size:', snap.size);
-        console.log('🧪 first doc id:', snap.docs[0]?.id);
-      } catch (e) {
-        console.log('🧪 getDocs() error:', e);
-      }
-    })();
-  }, []);
+    return () => stop();
+  }, [isAuthenticated]);
 
   return (
     <NavigationContainer>
       <SafeAreaProvider>
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        <AppNavigator />
+        {isAuthenticated && currentUser?.isVerified ? (
+          <AppNavigator />
+        ) : (
+          <OnboardingNavigator />
+        )}
       </SafeAreaProvider>
     </NavigationContainer>
   );

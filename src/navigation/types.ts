@@ -11,3 +11,13 @@ export type AppStackParamList = {
   Tabs: undefined;
   RecipeScreen: { mealId: string };
 };
+
+// Onboarding flow
+export type OnboardingStackParamList = {
+  Splash: undefined;
+  Intro: undefined;
+  SignIn: undefined;
+  SignUp: undefined;
+  VerifyPhone: undefined;
+  Otp: { phoneNumber: string };
+};
