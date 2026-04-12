@@ -20,7 +20,6 @@ const AddNewScreen = () => {
   const resetDraft = useMealStore(s => s.resetDraft);
   const submitDraft = useMealStore(s => s.submitDraft);
   const submitStatus = useMealStore(s => s.submitStatus);
-  const submitError = useMealStore(s => s.submitError);
   const imageUri = useMealStore(s => s.draft.imageLocalUri);
 
   const [clearSignal, setClearSignal] = useState(0);
@@ -53,7 +52,6 @@ const AddNewScreen = () => {
         mediaType: 'photo',
         compressImageQuality: 0.5, // ✅ compress on pick — reduces file size ~50%
       });
-      setDraft({ imageLocalUri: res.path });
       uploadImageInBackground(res.path); // ✅ start upload immediately, don't wait
     } catch (e) {
       // user cancelled — ignore
@@ -109,7 +107,7 @@ const AddNewScreen = () => {
     if (status === 'error' && error) {
       Alert.alert('Submission Error', error);
       setDraft({}); // ✅ resets submitStatus → 'idle' and clears submitError
-      return;       //    so ControlButtons has nothing to render inline
+      return; //    so ControlButtons has nothing to render inline
     }
 
     // Reset to step 1 on success
@@ -134,7 +132,8 @@ const AddNewScreen = () => {
         if (!draft.mealName.trim()) return 'Meal name is required';
         if (!draft.servings) return 'Servings are required';
         if (!draft.cookTimeMinutes) return 'Cook time is required';
-        if (draft.cookTimeMinutes > 120) return 'Cook time must be under two hours';
+        if (draft.cookTimeMinutes > 120)
+          return 'Cook time must be under two hours';
         if (!draft.difficulty) return 'Difficulty is required';
         if (!draft.dishTypes?.length) return 'Pick at least one dish type';
         if (!draft.dietaryTargets?.length)
@@ -166,12 +165,7 @@ const AddNewScreen = () => {
         const t = setTimeout(() => pickImage(), 100);
         return () => clearTimeout(t);
       }
-
-      return () => {
-        openedOnce.current = false;
-        setStep(1);
-        resetDraft();
-      };
+      return undefined;
     }, []),
   );
 

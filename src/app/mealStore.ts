@@ -179,6 +179,8 @@ export const useMealStore = create<
        *  - `cookTimeMinutes` must be set and ≤ 120 minutes.
        *  - `difficulty` must be set.
        *  - `dishTypes` must have at least one entry.
+       *  - `dietaryTargets` must have at least one entry.
+       *  - `hashTags` must have at least one entry.
        *
        * On success:
        *  - Sets `submitStatus` to 'success'.
@@ -219,6 +221,14 @@ export const useMealStore = create<
         }
         if (!draft.dishTypes.length) {
           set({ submitStatus: 'error', submitError: 'Dish type is required' });
+          return;
+        }
+        if (!draft.dietaryTargets.length) {
+          set({ submitStatus: 'error', submitError: 'At least one dietary target is required' });
+          return;
+        }
+        if (!draft.hashTags.length) {
+          set({ submitStatus: 'error', submitError: 'At least one hashtag is required' });
           return;
         }
 
