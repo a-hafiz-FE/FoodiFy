@@ -37,13 +37,13 @@ export const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: 'rgba(255,255,255,0.4)',
+    backgroundColor: 'rgba(255,255,255,0.25)',
   },
   dotActive: {
-    backgroundColor: colors.white,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    backgroundColor: colors.accent,
+    width: 24,
+    height: 10,
+    borderRadius: 5,
   },
 
   // ── Splash ─────────────────────────────────────
@@ -116,6 +116,24 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: colors.dark,
+  },
+  progressButtonWrap: {
+    width: 64,
+    height: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  progressRingSvg: {
+    position: 'absolute',
+  },
+  goButtonInner: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // ── Auth shared ────────────────────────────────
