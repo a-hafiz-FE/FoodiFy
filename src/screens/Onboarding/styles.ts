@@ -89,13 +89,15 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.15)',
   },
   introTextBox: {
-    backgroundColor: colors.dark,
     paddingHorizontal: 30,
     paddingVertical: 24,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
     width: '100%',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  introTextBoxImage: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
   introTitle: {
     fontSize: 24,

@@ -3,6 +3,7 @@ import {
   View,
   Text,
   Image,
+  ImageBackground,
   Pressable,
   StatusBar,
   Animated,
@@ -132,8 +133,13 @@ const IntroScreen = ({ onDone }: Props) => {
           ))}
         </Animated.View>
 
-        {/* ── Bottom card ── */}
-        <View style={styles.introTextBox}>
+        {/* ── Bottom card (image) ── */}
+        <ImageBackground
+          source={require('../../../assets/BottomCard.png')}
+          style={styles.introTextBox}
+          imageStyle={styles.introTextBoxImage}
+          resizeMode="cover"
+        >
           <Text style={styles.introTitle}>{currentSlide.title}</Text>
 
           {/* Loading dots */}
@@ -183,7 +189,7 @@ const IntroScreen = ({ onDone }: Props) => {
               </Text>
             </View>
           </Pressable>
-        </View>
+        </ImageBackground>
       </Animated.View>
     </View>
   );
