@@ -3,7 +3,6 @@ import {
   View,
   Text,
   Image,
-  ImageBackground,
   Pressable,
   StatusBar,
   Animated,
@@ -134,23 +133,13 @@ const IntroScreen = ({ onDone }: Props) => {
         </Animated.View>
 
         {/* ── Bottom card (image) ── */}
-        <ImageBackground
-          source={require('../../../assets/BottomCard.png')}
-          style={styles.introTextBox}
-          imageStyle={styles.introTextBoxImage}
-          resizeMode="cover"
-        >
+        <View style={styles.introTextBox}>
+          <Image
+            source={require('../../../assets/BottomCard.png')}
+            style={styles.introTextBoxImage}
+            resizeMode="cover"
+          />
           <Text style={styles.introTitle}>{currentSlide.title}</Text>
-
-          {/* Loading dots */}
-          <View style={styles.dotsRow}>
-            {slides.map((_, j) => (
-              <View
-                key={j}
-                style={[styles.dot, j <= activeIndex && styles.dotActive]}
-              />
-            ))}
-          </View>
 
           {/* Progress ring button */}
           <Pressable onPress={handleNext} style={styles.progressButtonWrap}>
@@ -189,7 +178,7 @@ const IntroScreen = ({ onDone }: Props) => {
               </Text>
             </View>
           </Pressable>
-        </ImageBackground>
+        </View>
       </Animated.View>
     </View>
   );
