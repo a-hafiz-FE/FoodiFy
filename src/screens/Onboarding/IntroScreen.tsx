@@ -162,7 +162,7 @@ const IntroScreen = ({ onDone }: Props) => {
                 cx={BUTTON_SIZE / 2}
                 cy={BUTTON_SIZE / 2}
                 r={RADIUS}
-                stroke={colors.accent}
+                stroke={colors.white}
                 strokeWidth={STROKE_WIDTH}
                 fill="none"
                 strokeDasharray={`${CIRCUMFERENCE}`}

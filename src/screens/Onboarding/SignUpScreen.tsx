@@ -5,6 +5,7 @@ import {
   TextInput,
   Pressable,
   Image,
+  ImageBackground,
   ScrollView,
   Alert,
   KeyboardAvoidingView,
@@ -61,62 +62,71 @@ const SignUpScreen = ({ onSignIn, onSuccess }: Props) => {
           source={require('../../../assets/SignUpHeader.png')}
           style={styles.authHeaderImage}
         />
+        <ImageBackground
+          source={require('../../../assets/signup-SigninBackground.png')}
+          style={styles.authCard}
+          imageStyle={styles.authCardImage}
+          resizeMode="cover"
+        >
+          <View style={styles.authBody}>
+            <Image
+              source={require('../../../assets/LogoOrangeText.png')}
+              style={[
+                styles.logoSmall,
+                { marginBottom: 6, alignSelf: 'flex-start' },
+              ]}
+            />
+            <Text style={styles.authTitle}>Sign Up</Text>
+            <View style={{ height: 20 }} />
 
-        <View style={styles.authBody}>
-          <Image
-            source={require('../../../assets/LogoOrangeText.png')}
-            style={[styles.logoSmall, { marginBottom: 6 }]}
-          />
-          <Text style={styles.authTitle}>Sign Up</Text>
-          <View style={{ height: 20 }} />
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor={colors.grey}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Create a Password"
+              placeholderTextColor={colors.grey}
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Repeat Password"
+              placeholderTextColor={colors.grey}
+              secureTextEntry
+              value={repeatPassword}
+              onChangeText={setRepeatPassword}
+            />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor={colors.grey}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Create a Password"
-            placeholderTextColor={colors.grey}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Repeat Password"
-            placeholderTextColor={colors.grey}
-            secureTextEntry
-            value={repeatPassword}
-            onChangeText={setRepeatPassword}
-          />
-
-          <Pressable
-            style={[
-              styles.primaryButton,
-              { marginTop: 10 },
-              authStatus === 'loading' && { opacity: 0.6 },
-            ]}
-            disabled={authStatus === 'loading'}
-            onPress={handleSignUp}
-          >
-            <Text style={styles.primaryButtonText}>
-              {authStatus === 'loading' ? 'Creating Account…' : 'Sign Up'}
-            </Text>
-          </Pressable>
-
-          <View style={styles.bottomLink}>
-            <Text style={styles.bottomLinkText}>I have an account?</Text>
-            <Pressable onPress={onSignIn}>
-              <Text style={styles.bottomLinkAction}>Sign In</Text>
+            <Pressable
+              style={[
+                styles.primaryButton,
+                { marginTop: 10 },
+                authStatus === 'loading' && { opacity: 0.6 },
+              ]}
+              disabled={authStatus === 'loading'}
+              onPress={handleSignUp}
+            >
+              <Text style={styles.primaryButtonText}>
+                {authStatus === 'loading' ? 'Creating Account…' : 'Sign Up'}
+              </Text>
             </Pressable>
+
+            <View style={styles.bottomLink}>
+              <Text style={styles.bottomLinkText}>I have an account?</Text>
+              <Pressable onPress={onSignIn}>
+                <Text style={styles.bottomLinkAction}>Sign In</Text>
+              </Pressable>
+            </View>
           </View>
-        </View>
+        </ImageBackground>
       </ScrollView>
     </KeyboardAvoidingView>
   );

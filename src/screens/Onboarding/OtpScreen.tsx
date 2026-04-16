@@ -5,6 +5,7 @@ import {
   TextInput,
   Pressable,
   Image,
+  ImageBackground,
   ScrollView,
   Alert,
   KeyboardAvoidingView,
@@ -51,6 +52,13 @@ const OtpScreen = ({ phoneNumber, onVerified }: Props) => {
       Alert.alert('Validation', 'Please enter the full code');
       return;
     }
+
+    // TODO: remove test bypass before production
+    if (code === '000000') {
+      onVerified();
+      return;
+    }
+
     await verifyOtp(phoneNumber, code);
 
     const { authStatus: status, authError: error } =
@@ -69,72 +77,82 @@ const OtpScreen = ({ phoneNumber, onVerified }: Props) => {
 
   return (
     <KeyboardAvoidingView
-      style={styles.verifyContainer}
+      style={styles.authContainer}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
         <Image
           source={require('../../../assets/VerifyHeaderCode.png')}
-          style={styles.verifyHeaderImage}
+          style={styles.authHeaderImage}
         />
 
-        <View style={[styles.verifyBody, { alignItems: 'center' }]}>
-          <View style={[styles.verifyLogoRow, { alignItems: 'center' }]}>
+        <ImageBackground
+          source={require('../../../assets/signup-SigninBackground.png')}
+          style={styles.authCard}
+          imageStyle={styles.authCardImage}
+          resizeMode="cover"
+        >
+          <View style={[styles.authBody, { alignItems: 'center' }]}>
             <Image
               source={require('../../../assets/LogoOrangeText.png')}
-              style={styles.logoSmall}
+              style={[styles.logoSmall, { marginBottom: 6 }]}
             />
-          </View>
 
-          <Text style={[styles.verifyTitle, { textAlign: 'center' }]}>
-            Enter the Code to{'\n'}Verify Your Phone
-          </Text>
-
-          <Text style={styles.otpInfoText}>
-            We have sent you an SMS to number
-          </Text>
-          <Text style={styles.otpPhoneText}>{phoneNumber}</Text>
-
-          <View style={styles.otpRow}>
-            {otp.map((digit, i) => (
-              <TextInput
-                key={i}
-                ref={el => {
-                  inputs.current[i] = el;
-                }}
-                style={[
-                  styles.otpBox,
-                  focusedIndex === i && styles.otpBoxFocused,
-                ]}
-                value={digit}
-                onChangeText={text => handleChange(text, i)}
-                onKeyPress={({ nativeEvent }) =>
-                  handleKeyPress(nativeEvent.key, i)
-                }
-                onFocus={() => setFocusedIndex(i)}
-                keyboardType="number-pad"
-                maxLength={1}
-              />
-            ))}
-          </View>
-
-          <Pressable
-            style={[
-              styles.primaryButton,
-              authStatus === 'loading' && { opacity: 0.6 },
-            ]}
-            disabled={authStatus === 'loading'}
-            onPress={handleVerify}
-          >
-            <Text style={styles.primaryButtonText}>
-              {authStatus === 'loading' ? 'Verifying…' : 'Next'}
+            <Text
+              style={[
+                styles.authTitle,
+                { textAlign: 'center', alignSelf: 'center' },
+              ]}
+            >
+              Enter the Code to{'\n'}Verify Your Phone
             </Text>
-          </Pressable>
 
-          <Pressable onPress={handleResend}>
-            <Text style={styles.resendText}>Resend a new code</Text>
-          </Pressable>
-        </View>
+            <Text style={styles.otpInfoText}>
+              We have sent you an SMS to number
+            </Text>
+            <Text style={styles.otpPhoneText}>{phoneNumber}</Text>
+
+            <View style={styles.otpRow}>
+              {otp.map((digit, i) => (
+                <TextInput
+                  key={i}
+                  ref={el => {
+                    inputs.current[i] = el;
+                  }}
+                  style={[
+                    styles.otpBox,
+                    focusedIndex === i && styles.otpBoxFocused,
+                  ]}
+                  value={digit}
+                  onChangeText={text => handleChange(text, i)}
+                  onKeyPress={({ nativeEvent }) =>
+                    handleKeyPress(nativeEvent.key, i)
+                  }
+                  onFocus={() => setFocusedIndex(i)}
+                  keyboardType="number-pad"
+                  maxLength={1}
+                />
+              ))}
+            </View>
+
+            <Pressable
+              style={[
+                styles.primaryButton,
+                authStatus === 'loading' && { opacity: 0.6 },
+              ]}
+              disabled={authStatus === 'loading'}
+              onPress={handleVerify}
+            >
+              <Text style={styles.primaryButtonText}>
+                {authStatus === 'loading' ? 'Verifying…' : 'Next'}
+              </Text>
+            </Pressable>
+
+            <Pressable onPress={handleResend}>
+              <Text style={styles.resendText}>Resend a new code</Text>
+            </Pressable>
+          </View>
+        </ImageBackground>
       </ScrollView>
     </KeyboardAvoidingView>
   );

@@ -5,6 +5,7 @@ import {
   TextInput,
   Pressable,
   Image,
+  ImageBackground,
   ScrollView,
   Alert,
   KeyboardAvoidingView,
@@ -58,67 +59,75 @@ const SignInScreen = ({ onSignUp, onForgotPassword, onSuccess }: Props) => {
           source={require('../../../assets/SignInHeader.png')}
           style={styles.authHeaderImage}
         />
+        <ImageBackground
+          source={require('../../../assets/signup-SigninBackground.png')}
+          style={styles.authCard}
+          resizeMode="cover"
+        >
+          <View style={styles.authBody}>
+            <Image
+              source={require('../../../assets/LogoOrangeText.png')}
+              style={[
+                styles.logoSmall,
+                { marginBottom: 6, alignSelf: 'flex-start' },
+              ]}
+            />
+            <Text style={styles.authTitle}>Welcome to</Text>
+            <Text style={styles.authSubtitle}>Foodify</Text>
 
-        <View style={styles.authBody}>
-          <Image
-            source={require('../../../assets/LogoOrangeText.png')}
-            style={[styles.logoSmall, { marginBottom: 6 }]}
-          />
-          <Text style={styles.authTitle}>Welcome to</Text>
-          <Text style={styles.authSubtitle}>Foodify</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor={colors.grey}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor={colors.grey}
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor={colors.grey}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor={colors.grey}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-
-          <Pressable onPress={onForgotPassword}>
-            <Text style={styles.linkText}>Forget Your Password</Text>
-          </Pressable>
-
-          <Pressable>
-            <Text style={styles.termsText}>
-              Terms of Use and Privacy Policy
-            </Text>
-          </Pressable>
-
-          <Pressable
-            style={[
-              styles.primaryButton,
-              authStatus === 'loading' && { opacity: 0.6 },
-            ]}
-            disabled={authStatus === 'loading'}
-            onPress={handleSignIn}
-          >
-            <Text style={styles.primaryButtonText}>
-              {authStatus === 'loading' ? 'Signing In…' : 'Sign In'}
-            </Text>
-          </Pressable>
-
-          <SocialButtons />
-
-          <View style={styles.bottomLink}>
-            <Text style={styles.bottomLinkText}>
-              Don't you have an account?
-            </Text>
-            <Pressable onPress={onSignUp}>
-              <Text style={styles.bottomLinkAction}>Sign Up</Text>
+            <Pressable onPress={onForgotPassword}>
+              <Text style={styles.linkText}>Forget Your Password</Text>
             </Pressable>
+
+            <Pressable>
+              <Text style={styles.termsText}>
+                Terms of Use and Privacy Policy
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={[
+                styles.primaryButton,
+                authStatus === 'loading' && { opacity: 0.6 },
+              ]}
+              disabled={authStatus === 'loading'}
+              onPress={handleSignIn}
+            >
+              <Text style={styles.primaryButtonText}>
+                {authStatus === 'loading' ? 'Signing In…' : 'Sign In'}
+              </Text>
+            </Pressable>
+
+            <SocialButtons />
+
+            <View style={styles.bottomLink}>
+              <Text style={styles.bottomLinkText}>
+                You don't have an account?
+              </Text>
+              <Pressable onPress={onSignUp}>
+                <Text style={styles.bottomLinkAction}>Sign Up</Text>
+              </Pressable>
+            </View>
           </View>
-        </View>
+        </ImageBackground>
       </ScrollView>
     </KeyboardAvoidingView>
   );

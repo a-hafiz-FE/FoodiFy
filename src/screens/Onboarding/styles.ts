@@ -12,6 +12,7 @@ export const colors = {
   grey: '#999',
   inputBorder: '#D0D0D0',
   inputBg: '#F9F9F9',
+  black: '#000000',
 };
 
 export const styles = StyleSheet.create({
@@ -106,25 +107,21 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 30,
-    paddingVertical: 24,
     paddingBottom: 40,
   },
   introTextBoxImage: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    top: 10,
+    width: 312,
+    height: 156,
+    borderRadius: 24,
   },
   introTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: colors.white,
     textAlign: 'center',
+    paddingBottom: 24,
   },
   goButton: {
     width: 56,
@@ -162,31 +159,46 @@ export const styles = StyleSheet.create({
   // ── Auth shared ────────────────────────────────
   authContainer: {
     flex: 1,
-    backgroundColor: colors.white,
+  },
+  authBgImage: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   authHeaderImage: {
     width: '100%',
-    height: height * 0.28,
+    height: height * 0.35,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
+  authCard: {
+    flex: 1,
+    borderRadius: 24,
+    marginTop: -110,
+    minHeight: height * 0.72,
+    overflow: 'hidden',
+    marginHorizontal: 8,
+  },
   authBody: {
     flex: 1,
-    paddingHorizontal: 30,
-    paddingTop: 20,
-    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 100,
+    // alignItems: 'center',
   },
   authTitle: {
     fontSize: 28,
     fontWeight: '700',
     color: colors.dark,
     marginTop: 8,
+    alignSelf: 'flex-start',
   },
   authSubtitle: {
     fontSize: 20,
     color: colors.coral,
     fontStyle: 'italic',
     marginBottom: 20,
+    alignSelf: 'flex-start',
   },
   input: {
     width: '100%',
@@ -203,13 +215,15 @@ export const styles = StyleSheet.create({
   linkText: {
     color: colors.primary,
     fontSize: 13,
-    marginBottom: 8,
+    marginBottom: 12,
+    alignSelf: 'flex-end',
   },
   termsText: {
     color: colors.coral,
     fontSize: 12,
     textDecorationLine: 'underline',
     marginBottom: 16,
+    alignSelf: 'center',
   },
   primaryButton: {
     width: '100%',
@@ -234,17 +248,18 @@ export const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.inputBorder,
+    backgroundColor: colors.black,
   },
   dividerText: {
     marginHorizontal: 12,
     fontSize: 13,
-    color: colors.grey,
+    color: colors.black,
   },
   socialRow: {
     flexDirection: 'row',
-    gap: 20,
+    gap: 16,
     marginVertical: 12,
+    alignSelf: 'center',
   },
   socialIcon: {
     width: 44,
@@ -256,11 +271,12 @@ export const styles = StyleSheet.create({
   },
   bottomLink: {
     flexDirection: 'row',
-    marginTop: 8,
+    marginTop: 10,
+    alignSelf: 'center',
   },
   bottomLinkText: {
     fontSize: 14,
-    color: colors.grey,
+    color: colors.black,
   },
   bottomLinkAction: {
     fontSize: 14,
